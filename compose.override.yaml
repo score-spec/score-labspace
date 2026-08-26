@@ -19,3 +19,19 @@ services:
   #     DANGEROUSLY_OMIT_AUTH: "true" # Skip auth for the MCP Inspector
 
 # Add other models or services your Labspace may need
+
+# Configs
+configs:
+
+  # Override the default allow list to add BuildKit builders and kind-specific mount points
+  docker-proxy-mount-allowlist:
+    content: |
+      gates:
+        - type: mountSource
+          allowedSources:
+            - labspace-content
+            - labspace-socket-proxy
+            - buildx_buildkit_default_state
+            - buildx_buildkit_builder-*
+            - label:labspace-resource=true
+            - /lib/modules

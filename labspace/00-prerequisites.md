@@ -44,5 +44,5 @@ sudo mv ./kind /usr/local/bin/kind
 ```
 
 ```bash
-./scripts/setup-kind-cluster.sh
+sudo ./scripts/setup-kind-cluster.sh
 ```

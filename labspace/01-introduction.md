@@ -1,21 +1,17 @@
 # Introduction
 
-👋 Welcome to the **Labspace starter** lab! During this lab, you will learn to do the following:
+👋 Welcome to the **Score Labspace** lab! During this lab, you will learn to do the following:
 
-- Learning Objective 1
-- Learning Objective 2
-- Learning Objective 3
-- Learning Objective 4
+- Introduction to Score
+- Getting started with `score-compose`
+- Getting started with `score-k8s`
+- Advanced scenario with `score-compose`
+- Advanced scenario with `score-k8s`
 
 
-## 🙋 What is a Labspace again?
+## What is Score?
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis lacinia nisi sit amet auctor accumsan. Maecenas suscipit, libero quis ullamcorper pulvinar, dolor nisl vehicula orci, vel egestas arcu nibh eget enim. 
+Score is an open-source and a [CNCF Sandbox project](https://www.cncf.io/projects/score/).
 
-Suspendisse potenti. Pellentesque eleifend eget ante eu egestas. 
-
-Nunc sit amet dapibus erat. Aliquam diam arcu, fringilla hendrerit metus sed, pellentesque fringilla lacus. 
-
-Nulla ornare nulla risus. Curabitur ut ipsum euismod, accumsan lorem eu, pretium lorem. Fusce imperdiet fermentum hendrerit.
-
+Score aims to reduce developer toil and cognitive load by enabling the definition of a single file that works across multiple platforms in a vendor-neutral way, eliminating the need for tooling-specific syntax from platforms such as Docker or Kubernetes for example.
 

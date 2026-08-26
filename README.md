@@ -1,4 +1,4 @@
-# Labspace starter
+# Score Labspace
 
 This repository is intended to serve as a template to help bootstrap a new Labspace.
 

@@ -38,3 +38,7 @@ score-compose provisioners list
 ```
 
 We'll explore more about these resource provisioners later.
+
+## Resources
+
+- [`score-compose` implementation](https://docs.score.dev/docs/score-implementation/score-compose/)

@@ -10,20 +10,20 @@ description: |
 sections:
   - title: Prerequisites
     contentPath: 00-prerequisites.md
-  - title: Introduction to Score
+  - title: Introduction
     contentPath: 01-introduction.md
   - title: Score Spec
     contentPath: 02-score-spec.md
   - title: Getting started with score-compose
-    contentPath: 02-score-compose.md
+    contentPath: 03-score-compose.md
   - title: Getting started with score-k8s
-    contentPath: 03-score-k8s.md
+    contentPath: 04-score-k8s.md
   - title: More advanced with score-compose
-    contentPath: 04-score-compose-advanced.md
+    contentPath: 05-score-compose-advanced.md
   - title: More advanced with score-k8s
-    contentPath: 04-score-k8s-advanced.md
+    contentPath: 06-score-k8s-advanced.md
   - title: Conclusion
-    contentPath: 05-conclusion.md
+    contentPath: 07-conclusion.md
 
 # Services are used to add default tabs in the Labspace interface.
 # The IDE will always be present as a service, but you can add additional services as needed.

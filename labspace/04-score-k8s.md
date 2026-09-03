@@ -21,7 +21,11 @@ All of this technical details abstracted by the `score-k8s` implementation from 
 
 We can now deploy these Kubernetes manifests to spin up our workload and its dependencies in Kubernetes cluster:
 ```bash
-kubectl apply -f manifests.yaml
+sudo kubectl apply -f manifests.yaml
+```
+
+```bash
+sudo kubectl get all,statefulset,secret,httproute
 ```
 
 Let's test the deployed workload on :tabLink[localhost:8080]{href="http://localhost:8080" title="Web app"}.
@@ -34,3 +38,7 @@ score-k8s provisioners list
 ```
 
 We'll explore more about these resource provisioners later.
+
+## Resources
+
+- [`score-k8s` implementation](https://docs.score.dev/docs/score-implementation/score-k8s/)

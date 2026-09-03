@@ -4,7 +4,7 @@ First and foremost, Score is a Specification.
 
 The Score Specification is a YAML file that contains the following top-level reference definitions.
 
-The simplest Score file could look like this:
+The simplest Score file is:
 ```yaml
 apiVersion: score.dev/v1b1
 metadata:

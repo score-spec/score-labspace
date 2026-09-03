@@ -1,6 +1,6 @@
 # More advanced with `score-k8s`
 
-## Override properties
+## `--override-property`
 
 ```bash
 score-k8s generate score.yaml \
@@ -12,7 +12,7 @@ score-k8s generate score.yaml \
 kubectl apply -f manifests.yaml
 ```
 
-## Generate Namespace
+## `--namespace` and `--generate-namespace`
 
 ```bash
 score-k8s generate score.yaml \
@@ -26,7 +26,7 @@ score-k8s generate score.yaml \
 kubectl apply -f manifests.yaml
 ```
 
-## Patch templates
+## `--patch-templates`
 
 ```bash
 score-k8s init \
@@ -35,7 +35,9 @@ score-k8s init \
 
 ```bash
 score-k8s generate score.yaml \
-    --override-property containers.hello-world.variables.MESSAGE="Hello, Kubernetes!"
+    --override-property containers.hello-world.variables.MESSAGE="Hello, Kubernetes!" \
+    --namespace test \
+    --generate-namespace
 ```
 
 ```bash
@@ -52,7 +54,9 @@ score-k8s init \
 
 ```bash
 score-k8s generate score.yaml \
-    --override-property containers.hello-world.variables.MESSAGE="Hello, Kubernetes!"
+    --override-property containers.hello-world.variables.MESSAGE="Hello, Kubernetes!" \
+    --namespace test \
+    --generate-namespace
 ```
 
 ```bash

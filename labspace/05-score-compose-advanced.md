@@ -1,6 +1,6 @@
 # More advanced with `score-compose`
 
-## Override properties
+## `--override-property`
 
 ```bash
 score-compose generate score.yaml \
@@ -12,7 +12,7 @@ score-compose generate score.yaml \
 docker compose up --build -d
 ```
 
-## Patch templates
+## `--patch-templates`
 
 ```bash
 score-compose init \

@@ -10,6 +10,8 @@ description: |
 sections:
   - title: Prerequisites
     contentPath: 00-prerequisites.md
+  - title: Overview
+    contentPath: 00-overview.md
   - title: Introduction
     contentPath: 01-introduction.md
   - title: Score Spec
@@ -18,18 +20,10 @@ sections:
     contentPath: 03-score-compose.md
   - title: Getting started with score-k8s
     contentPath: 04-score-k8s.md
-  - title: More advanced with score-compose
+  - title: More advanced scenario with score-compose
     contentPath: 05-score-compose-advanced.md
-  - title: More advanced with score-k8s
+  - title: More advanced scenario with score-k8s
     contentPath: 06-score-k8s-advanced.md
   - title: Conclusion
     contentPath: 07-conclusion.md
 
-# Services are used to add default tabs in the Labspace interface.
-# The IDE will always be present as a service, but you can add additional services as needed.
-# Icon values come from https://fonts.google.com/icons/
-services:
-  - id: app
-    url: http://localhost:8080
-    title: App
-    icon: anchor

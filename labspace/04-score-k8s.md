@@ -6,6 +6,8 @@ Let's do it!
 
 We'll use the `score-k8s` implementation for that.
 
+![score-k8s](images/score-k8s.png)
+
 ```bash
 score-k8s init
 ```

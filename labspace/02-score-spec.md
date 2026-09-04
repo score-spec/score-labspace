@@ -2,9 +2,11 @@
 
 First and foremost, Score is a Specification.
 
-The Score Specification is a YAML file that contains the following top-level reference definitions.
+The Score Specification is what Developers will use to describe in a YAML file what their workload needs when someone later will deploy it somewhere.
 
-The simplest Score file is:
+## Simple Score file
+
+The simplest Score file that you can have is:
 ```yaml
 apiVersion: score.dev/v1b1
 metadata:
@@ -14,7 +16,13 @@ containers:
     image: .
 ```
 
-But let's look at a more realistic workload, a :fileLink[public service talking to a PostgreSQL database]{path="score.yaml"}:
+This is defining that the workload `my-workload` has one container `my-container`, and at this stage the container image name is not known (`.`) and will be supplied later in the CI/CD workflow.
+
+_Note: it's not a Kubernetes Custom Resource._
+
+## More complex Score file
+
+Now here is a more realistic workload definition, a public service talking to a PostgreSQL database (:fileLink[score.yaml]{path="score.yaml"}):
 ```yaml save-as=score.yaml
 apiVersion: score.dev/v1b1
 metadata:
@@ -49,6 +57,8 @@ service:
       port: 8080
       targetPort: 3000
 ```
+
+
 
 ## Resources
 

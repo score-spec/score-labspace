@@ -1,15 +1,4 @@
-# Introduction
-
-👋 Welcome to the **Score Labspace** lab! During this lab, you will learn to do the following:
-
-- Introduction to Score
-- Getting started with `score-compose`
-- Getting started with `score-k8s`
-- Advanced scenario with `score-compose`
-- Advanced scenario with `score-k8s`
-
-
-## What is Score?
+# What is Score?
 
 Score is an open-source and a [CNCF Sandbox project](https://www.cncf.io/projects/score/).
 

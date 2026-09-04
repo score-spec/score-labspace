@@ -1,4 +1,14 @@
-# More advanced with `score-k8s`
+# More advanced scenario with `score-k8s`
+
+The `score-k8s` implementation CLI provides more options to enrich the default `manifests.yaml` file generated in order to support more native Kubernetes features.
+
+## `--format kyaml`
+
+```bash
+score-k8s generate score.yaml \
+    --image scorespec/sample-score-app:latest \
+    --format kyaml
+```
 
 ## `--override-property`
 
@@ -12,7 +22,19 @@ score-k8s generate score.yaml \
 kubectl apply -f manifests.yaml
 ```
 
-## `--namespace` and `--generate-namespace`
+## `--namespace`
+
+```bash
+score-k8s generate score.yaml \
+    --image scorespec/sample-score-app:latest \
+    --namespace test
+```
+
+```bash
+kubectl apply -f manifests.yaml
+```
+
+## `--generate-namespace`
 
 ```bash
 score-k8s generate score.yaml \
@@ -62,3 +84,8 @@ score-k8s generate score.yaml \
 ```bash
 kubectl apply -f manifests.yaml
 ```
+
+## Resources
+
+- [`score-k8s` implementation](https://docs.score.dev/docs/score-implementation/score-k8s/)
+- [Patch templates](https://docs.score.dev/docs/score-implementation/score-k8s/patch-templates/)

@@ -93,22 +93,21 @@ See the associated new fields and values in the generated :fileLink[`manifests.y
 Instead of using the inlined format, you can use `--patch-templates` with local or external files (Https, Git, OCI), like this:
 ```bash
 score-k8s init \
-    --patch-templates https://raw.githubusercontent.com/score-spec/community-patchers/refs/heads/main/score-k8s/unprivileged.tpl
+    --patch-templates https://raw.githubusercontent.com/score-spec/community-patchers/refs/heads/main/score-k8s/unprivileged.tpl \
+    --patch-templates https://raw.githubusercontent.com/score-spec/community-patchers/refs/heads/main/score-k8s/service-account.tpl
 ```
+
+In this example above, in addition to set the `securityContext` with this [`unprivileged.tpl` patch template file](https://docs.score.dev/examples/patch-templates/score-k8s/unprivileged/), we are also using a second [`service-account.tpl` patch template file](https://docs.score.dev/examples/patch-templates/score-k8s/service-account/) to create a dedicated `ServiceAccount` resource per `Deployment`.
 
 ## Provisioners
 
 ```bash
 score-k8s init \
-    --provisioners https://raw.githubusercontent.com/score-spec/community-provisioners/refs/heads/main/route/score-k8s/10-shared-gateway-httproute.provisioners.yaml \
-    --patch-templates https://raw.githubusercontent.com/score-spec/community-patchers/refs/heads/main/score-k8s/unprivileged.tpl
+    --provisioners https://raw.githubusercontent.com/score-spec/community-provisioners/refs/heads/main/route/score-k8s/10-shared-gateway-httproute.provisioners.yaml
 ```
 
 ```bash
-score-k8s generate score.yaml \
-    --override-property containers.hello-world.variables.MESSAGE="Hello, Kubernetes!" \
-    --namespace test \
-    --generate-namespace
+score-k8s generate score.yaml
 ```
 
 ```bash

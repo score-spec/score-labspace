@@ -6,7 +6,7 @@ This is a learning experience for exploring and understanding the CNCF Sandbox p
 
 You will be guided through instructions to run command lines with tools already pre-installed to better understand the concepts of Score and its features.
 
-✅ Here is how this lab structured:
+✅ Here is how this lab is structured:
 
 - Introduction to Score
 - Getting started with `score-compose`

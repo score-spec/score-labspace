@@ -97,7 +97,7 @@ score-k8s init \
     --patch-templates https://raw.githubusercontent.com/score-spec/community-patchers/refs/heads/main/score-k8s/service-account.tpl
 ```
 
-In this example above, in addition to set the `securityContext` with this [`unprivileged.tpl` patch template file](https://docs.score.dev/examples/patch-templates/score-k8s/unprivileged/), we are also using a second [`service-account.tpl` patch template file](https://docs.score.dev/examples/patch-templates/score-k8s/service-account/) to create a dedicated `ServiceAccount` resource per `Deployment`.
+In this example above, in addition to set the `securityContext` with this [`unprivileged.tpl`](https://docs.score.dev/examples/patch-templates/score-k8s/unprivileged/) patch template file, we are also using a second [`service-account.tpl`](https://docs.score.dev/examples/patch-templates/score-k8s/service-account/) patch template file to create a dedicated `ServiceAccount` resource per `Deployment`.
 
 ## Provisioners
 

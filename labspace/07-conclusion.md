@@ -1,18 +1,22 @@
 # Conclusion
 
-You’ve completed the **Labspace starter** lab!
+You’ve completed the **Score Labspace**!
 
-✅ You now know how to:
+✅ You now know:
 
-- Learning Objective 1
-- Learning Objective 2
-- Learning Objective 3
-- Learning Objective 4
+- What is Score (Spec versus Implementations)
+- How to author a Score file as Developers
+- How to use the two default Score implementations: `score-compose` and `score-k8s`
+- How to customize the outputs of the Score implementations with the patch templates feature
+- How to define your own resource types with the resource provisioners feature
+
+🎉 Well done!
 
 ## Next Steps
 
-- Next step #1
-- Next step #2
-- Next step #3
+- [Explore more examples](https://docs.score.dev/examples/)
+- [CI/CD pipelines with Score](https://docs.score.dev/docs/how-to/score-cicd-pipelines/)
+- [Join the Score community](https://docs.score.dev/docs/community/)
+- Any suggestions to improve this **Score Labspace**, please help us make it better by filing an issue [there](https://github.com/score-spec/score-labspace/issues)!
 
-🎉 Well done!
+Let's Score it! 🎶

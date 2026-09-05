@@ -8,10 +8,14 @@ We'll use the `score-k8s` implementation for that.
 
 ![score-k8s](images/score-k8s.png)
 
+Initialize your current `score-k8s` workspace, run the following command in your terminal:
 ```bash
 score-k8s init
 ```
 
+_Note: The `init` command created the `.score-k8s` directory to store a local state, read more about its purpose [there](https://docs.score.dev/docs/score-implementation/local-state/)._
+
+Convert the `score.yaml` file into a deployable `manifests.yaml`, run the following command in your terminal:
 ```bash
 score-k8s generate score.yaml \
     --image scorespec/sample-score-app:latest
@@ -21,18 +25,19 @@ A new `manifests.yaml` file has been generated, see :fileLink[here]{path="manife
 
 All of this technical details abstracted by the `score-k8s` implementation from the Developer.
 
-We can now deploy these Kubernetes manifests to spin up our workload and its dependencies in Kubernetes cluster:
+Deploy these Kubernetes manifests to spin up our workload and its dependencies in Kubernetes cluster:
 ```bash
 sudo kubectl apply -f manifests.yaml
 ```
 
+See the running containers and associated ressources:
 ```bash
 sudo kubectl get all,statefulset,secret,httproute
 ```
 
-Let's test the deployed workload on :tabLink[localhost:8080]{href="http://localhost:8080" title="Web app"}.
+Test the deployed workload on :tabLink[localhost:8080]{href="http://localhost:8080" title="Web app"}.
 
-At this stage, the we used two resource types: `postgres`, `dns` and `route`.
+At this stage, we used two resource types: `postgres`, `dns` and `route`.
 
 The available resource types and their inputs/outputs could be discovered like this:
 ```bash
@@ -44,3 +49,4 @@ We'll explore more about these resource provisioners later.
 ## Resources
 
 - [`score-k8s` implementation](https://docs.score.dev/docs/score-implementation/score-k8s/)
+- [Local state directory](https://docs.score.dev/docs/score-implementation/local-state/)

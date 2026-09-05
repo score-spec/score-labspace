@@ -13,6 +13,8 @@ Initialize your current `score-compose` workspace, run the following command in 
 score-compose init
 ```
 
+_Note: The `init` command created the `.score-compose` directory to store a local state, read more about its purpose [there](https://docs.score.dev/docs/score-implementation/local-state/)._
+
 Convert the `score.yaml` file into a deployable `compose.yaml`, run the following command in your terminal:
 ```bash
 score-compose generate score.yaml \

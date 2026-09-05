@@ -17,33 +17,48 @@ docker compose up --build -d
 
 ## `--override-property`
 
+Override any properties of the Score file imperatively:
 ```bash
 score-compose generate score.yaml \
     --image scorespec/sample-score-app:latest \
     --override-property containers.hello-world.variables.MESSAGE="Hello, Compose!"
 ```
 
-```bash
-docker compose up -d
-```
+See the new `MESSAGE` value in the generated :fileLink[`compose.yaml`]{path="compose.yaml" line="17"} file.
 
 ## `--patch-templates`
 
+Override the default content and any fields of the `compose.yaml` with the patch template feature:
+
 ```bash
-score-compose init \
-    --patch-templates https://raw.githubusercontent.com/score-spec/community-patchers/refs/heads/main/score-compose/unprivileged.tpl
+echo '{{ range $name, $spec := .Workloads }}
+{{ range $cname, $_ := $spec.containers }}
+- op: set
+  path: services.{{ $name }}-{{ $cname }}.read_only
+  value: true
+- op: set
+  path: services.{{ $name }}-{{ $cname }}.user
+  value: "65532"
+- op: set
+  path: services.{{ $name }}-{{ $cname }}.cap_drop
+  value: ["ALL"]
+{{ end }}
+{{ end }}' | score-compose init --patch-templates -
 ```
+
+In this example, this inlined snippet patches all the Workloads and sets the fields `read_only`, `user` and `cap_drop`.
+
+_Note: instead of using the inlined format, you use `--patch-templates` with local or external files (Https, Git, OCI)._
 
 ```bash
 score-compose generate score.yaml \
     --image scorespec/sample-score-app:latest
 ```
 
-```bash
-docker compose up -d
-```
+See the associated new fields and values in the generated :fileLink[`compose.yaml`]{path="compose.yaml" line="23"} file.
 
 ## Resources
 
-- [`score-compose` implementation](https://docs.score.dev/docs/score-implementation/score-compose/)
+- [`score-compose` CLI](https://docs.score.dev/docs/score-implementation/score-compose/cli/)
 - [Patch templates](https://docs.score.dev/docs/score-implementation/score-compose/patch-templates/)
+- [Patch templates examples Hub](https://docs.score.dev/examples/patch-templates?implementation=score-compose)

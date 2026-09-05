@@ -13,6 +13,7 @@ You will be guided through instructions to run command lines with tools already 
 - Getting started with `score-k8s`
 - Advanced scenario with `score-compose`
 - Advanced scenario with `score-k8s`
+- Next steps
 
 Let's Score it! 🎶
 

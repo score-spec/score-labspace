@@ -87,5 +87,6 @@ kubectl apply -f manifests.yaml
 
 ## Resources
 
-- [`score-k8s` implementation](https://docs.score.dev/docs/score-implementation/score-k8s/)
+- [`score-k8s` CLI](https://docs.score.dev/docs/score-implementation/score-compose/cli/)
 - [Patch templates](https://docs.score.dev/docs/score-implementation/score-k8s/patch-templates/)
+- [Patch templates examples Hub](https://docs.score.dev/examples/patch-templates?implementation=score-k8s)

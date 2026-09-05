@@ -2,7 +2,7 @@
 
 First and foremost, Score is a Specification.
 
-The Score Specification is what Developers will use to describe in a YAML file what their workload needs when someone later will deploy it somewhere.
+The Score Specification is what Developers will use to describe in a YAML file what their workload needs. Eventually someone later will deploy it somewhere with a Score implementation.
 
 ## Simple Score file
 

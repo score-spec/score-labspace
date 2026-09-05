@@ -1,69 +1,99 @@
-# More advanced scenario with `score-k8s`
+# Advanced scenario with `score-k8s`
 
 The `score-k8s` implementation CLI provides more options to enrich the default `manifests.yaml` file generated in order to support more native Kubernetes features.
 
-## `--format kyaml`
+## `--format yaml|kyaml`
 
+Export the `manifests.yaml` as [`kyaml`](https://kubernetes.io/docs/reference/encodings/kyaml/) instead of default `yaml`:
 ```bash
 score-k8s generate score.yaml \
     --image scorespec/sample-score-app:latest \
     --format kyaml
 ```
 
+See the new format of the generated :fileLink[`manifests.yaml`]{path="manifests.yaml" line="17"} file.
+
 ## `--override-property`
 
+Override any properties of the Score file imperatively:
 ```bash
 score-k8s generate score.yaml \
     --image scorespec/sample-score-app:latest \
     --override-property containers.hello-world.variables.MESSAGE="Hello, Kubernetes!"
 ```
 
-```bash
-kubectl apply -f manifests.yaml
-```
+See the new `MESSAGE` value in the generated :fileLink[`manifests.yaml`]{path="manifests.yaml" line="216"} file.
 
 ## `--namespace`
 
+Set the `namespace` field for the generated Kubernetes resources:
 ```bash
 score-k8s generate score.yaml \
     --image scorespec/sample-score-app:latest \
     --namespace test
 ```
 
-```bash
-kubectl apply -f manifests.yaml
-```
+See the new `namespace` field in the generated :fileLink[`manifests.yaml`]{path="manifests.yaml" line="190"} file.
 
 ## `--generate-namespace`
 
+Generate a `Namespace` Kubernetes resource:
 ```bash
 score-k8s generate score.yaml \
     --image scorespec/sample-score-app:latest \
-    --override-property containers.hello-world.variables.MESSAGE="Hello, Kubernetes!" \
     --namespace test \
     --generate-namespace
 ```
 
-```bash
-kubectl apply -f manifests.yaml
-```
+See the new `Namespace` resource in the generated :fileLink[`manifests.yaml`]{path="manifests.yaml" line="3"} file.
 
 ## `--patch-templates`
 
+Override the default content and any fields of the `manifests.yaml` with the patch template feature:
+
 ```bash
-score-k8s init \
-    --patch-templates https://raw.githubusercontent.com/score-spec/community-patchers/refs/heads/main/score-k8s/unprivileged.tpl
+echo '{{ range $i, $m := .Manifests }}
+{{ if eq $m.kind "Deployment" }}
+- op: set
+  path: {{ $i }}.spec.template.spec.automountServiceAccountToken
+  value: false
+- op: set
+  path: {{ $i }}.spec.template.spec.securityContext
+  value:
+    fsGroup: 65532
+    runAsGroup: 65532
+    runAsNonRoot: true
+    runAsUser: 65532
+    seccompProfile:
+      type: "RuntimeDefault"
+{{ range $cname, $_ := $m.spec.template.spec.containers }}
+- op: set
+  path: {{ $i }}.spec.template.spec.containers.{{ $cname }}.securityContext
+  value:
+    allowPrivilegeEscalation: false
+    privileged: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+{{ end }}
+{{ end }}
+{{ end }}' | score-k8s init --patch-templates -
 ```
+
+In this example, this inlined snippet patches all the Workloads and sets the `securityContext` fields.
 
 ```bash
 score-k8s generate score.yaml \
-    --override-property containers.hello-world.variables.MESSAGE="Hello, Kubernetes!" \
-    --namespace test \
-    --generate-namespace
+    --image scorespec/sample-score-app:latest
 ```
 
+See the associated new fields and values in the generated :fileLink[`manifests.yaml`]{path="manifests.yaml" line="223"} file.
+
+Instead of using the inlined format, you can use `--patch-templates` with local or external files (Https, Git, OCI), like this:
 ```bash
-kubectl apply -f manifests.yaml
+score-k8s init \
+    --patch-templates https://raw.githubusercontent.com/score-spec/community-patchers/refs/heads/main/score-k8s/unprivileged.tpl
 ```
 
 ## Provisioners

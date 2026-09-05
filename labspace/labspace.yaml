@@ -20,9 +20,9 @@ sections:
     contentPath: 03-score-compose.md
   - title: Getting started with score-k8s
     contentPath: 04-score-k8s.md
-  - title: More advanced scenario with score-compose
+  - title: Advanced scenario with score-compose
     contentPath: 05-score-compose-advanced.md
-  - title: More advanced scenario with score-k8s
+  - title: Advanced scenario with score-k8s
     contentPath: 06-score-k8s-advanced.md
   - title: Conclusion
     contentPath: 07-conclusion.md

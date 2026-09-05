@@ -1,6 +1,6 @@
 # Conclusion
 
-You’ve completed the **Score Labspace**!
+You’ve completed the **Score Labspace**! 👏
 
 ✅ You now know:
 

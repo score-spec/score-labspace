@@ -1,4 +1,4 @@
-# More advanced scenario with `score-compose`
+# Advanced scenario with `score-compose`
 
 The `score-compose` implementation CLI provides more options to enrich the default `compose.yaml` file generated in order to support more native Docker Compose features.
 
@@ -48,14 +48,18 @@ echo '{{ range $name, $spec := .Workloads }}
 
 In this example, this inlined snippet patches all the Workloads and sets the fields `read_only`, `user` and `cap_drop`.
 
-_Note: instead of using the inlined format, you use `--patch-templates` with local or external files (Https, Git, OCI)._
-
 ```bash
 score-compose generate score.yaml \
     --image scorespec/sample-score-app:latest
 ```
 
 See the associated new fields and values in the generated :fileLink[`compose.yaml`]{path="compose.yaml" line="23"} file.
+
+Instead of using the inlined format, you can use `--patch-templates` with local or external files (Https, Git, OCI), like this:
+```bash
+score-compose init \
+    --patch-templates https://raw.githubusercontent.com/score-spec/community-patchers/refs/heads/main/score-compose/unprivileged.tpl
+```
 
 ## Resources
 

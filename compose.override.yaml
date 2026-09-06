@@ -3,26 +3,13 @@ services:
     environment:
       PROJECT_CLONE_URL: https://github.com/score-spec/score-labspace
 
-  # workspace:
-  #   # Override the default image if desired
-  #   # More details - https://github.com/dockersamples/labspace-infra/blob/main/docs/configuration.md#overriding-the-workspace-image
-  #   image: dockersamples/labspace-workspace-java
+  workspace:
+    configs:
+      - source: workspace-setup-script
+        target: /entrypoint.d/10-setup-script.sh
+        mode: 0755
 
-  #   # Override the default ports to publish additional ports you may need
-  #   # More details - https://github.com/dockersamples/labspace-infra/blob/main/docs/configuration.md#overriding-the-workspace-ports
-  #   ports: !override
-  #     - "6274:6274" # Expose the MCP inspector users will launch from inside the Labspace
-  #     - "8080:8080" # The port used by the app
-
-  #   # Add other environment variables as needed
-  #   environment:
-  #     DANGEROUSLY_OMIT_AUTH: "true" # Skip auth for the MCP Inspector
-
-# Add other models or services your Labspace may need
-
-# Configs
 configs:
-
   # Override the default allow list to add BuildKit builders and kind-specific mount points
   docker-proxy-mount-allowlist:
     content: |
@@ -35,3 +22,36 @@ configs:
             - buildx_buildkit_builder-*
             - label:labspace-resource=true
             - /lib/modules
+  
+  workspace-setup-script:
+    content: |
+      #!/bin/sh
+      set -e
+
+      cd project
+      rm README.md
+      git clone https://github.com/score-spec/sample-score-app .
+      mkdir tmp
+      cd tmp
+
+      SCORE_COMPOSE_VERSION=$(curl -sL https://api.github.com/repos/score-spec/score-compose/releases/latest | jq -r .tag_name)
+      wget https://github.com/score-spec/score-compose/releases/download/$${SCORE_COMPOSE_VERSION}/score-compose_$${SCORE_COMPOSE_VERSION}_linux_amd64.tar.gz
+      tar -xvf score-compose_$${SCORE_COMPOSE_VERSION}_linux_amd64.tar.gz
+      chmod +x score-compose
+      sudo mv score-compose /usr/local/bin
+
+      SCORE_K8S_VERSION=$(curl -sL https://api.github.com/repos/score-spec/score-k8s/releases/latest | jq -r .tag_name)
+      wget https://github.com/score-spec/score-k8s/releases/download/$${SCORE_K8S_VERSION}/score-k8s_$${SCORE_K8S_VERSION}_linux_amd64.tar.gz
+      tar -xvf score-k8s_$${SCORE_K8S_VERSION}_linux_amd64.tar.gz
+      chmod +x score-k8s
+      sudo mv score-k8s /usr/local/bin
+
+      cd ..
+      rm -rf tmp
+
+      KIND_VERSION=$(curl -sL https://api.github.com/repos/kubernetes-sigs/kind/releases/latest | jq -r .tag_name)
+      curl -Lo ./kind https://kind.sigs.k8s.io/dl/$${KIND_VERSION}/kind-linux-amd64
+      chmod +x ./kind
+      sudo mv ./kind /usr/local/bin/kind
+
+      sudo ./scripts/setup-kind-cluster.sh

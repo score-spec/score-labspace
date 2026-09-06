@@ -8,8 +8,6 @@ description: |
   A learning experience for exploring and understanding the Score project and features.
 
 sections:
-  - title: Prerequisites
-    contentPath: 00-prerequisites.md
   - title: Overview
     contentPath: 00-overview.md
   - title: Introduction

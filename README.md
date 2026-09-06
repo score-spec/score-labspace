@@ -18,7 +18,7 @@ You will be guided through instructions to run command lines with tools already 
 You can run this Labspace in its latest version from anywhere (if you have Docker/Podman and Docker/Podman Compose installed):
 
 ```bash
-docker compose -f oci://ghcr.io/score-spec/score-labspace:latest up
+docker compose -f oci://scorespec/score-labspace:latest up
 ```
 
 ## Contribute to this Labspace

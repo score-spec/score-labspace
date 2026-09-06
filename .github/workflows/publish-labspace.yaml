@@ -1,7 +1,7 @@
 name: Package and deploy Labspace
 
 env:
-  DOCKERHUB_REPO: your-dockerhub-username/labspace-name
+  DOCKERHUB_REPO: scorespec/score-labspace
 
 on:
   push:
@@ -16,11 +16,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Log in to DockerHub
-        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
+      - name: docker login
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        env:
+          DOCKERHUB_OIDC_CONNECTIONID: ${{ vars.DOCKER_HUB_OIDC_CONNECTION_ID }}
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry-auth: |
+            - username: ${{ vars.DOCKER_HUB_ORG }}
 
       - name: Publish Labspace
         uses: dockersamples/publish-labspace-action@6d55204848c70c76b7df17f8c8fb20c2b24a8b00 # v2.0.0

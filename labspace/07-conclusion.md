@@ -17,6 +17,6 @@ You’ve completed the **Score Labspace**! 👏
 - [Explore more examples](https://docs.score.dev/examples/)
 - [CI/CD pipelines with Score](https://docs.score.dev/docs/how-to/score-cicd-pipelines/)
 - [Join the Score community](https://docs.score.dev/docs/community/)
-- Any suggestions to improve this **Score Labspace**, please help us make it better by filing an issue [there](https://github.com/score-spec/score-labspace/issues)!
+- Any suggestions to improve this **Score Labspace**? Please help us make it better by filing an issue [there](https://github.com/score-spec/score-labspace/issues)!
 
 Let's Score it! 🎶

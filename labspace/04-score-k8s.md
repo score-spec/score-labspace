@@ -25,6 +25,11 @@ A new `manifests.yaml` file has been generated, see :fileLink[here]{path="manife
 
 All of this technical details abstracted by the `score-k8s` implementation from the Developer.
 
+Before deploying this `manifests.yaml` to Kubernetes, we need to cluster, create a local `kind` cluster by running this command:
+```bash
+sudo ./scripts/setup-kind-cluster.sh
+```
+
 Deploy these Kubernetes manifests to spin up our workload and its dependencies in Kubernetes cluster:
 ```bash
 sudo kubectl apply -f manifests.yaml

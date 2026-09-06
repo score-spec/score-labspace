@@ -25,6 +25,6 @@ jobs:
             - username: ${{ vars.DOCKER_HUB_ORG }}
 
       - name: Publish Labspace
-        uses: dockersamples/publish-labspace-action@6d55204848c70c76b7df17f8c8fb20c2b24a8b00 # v2.0.0
+        uses: dockersamples/publish-labspace-action@d8adcaea2f438ac2f770a88a4e7633555af9c580 # v2.0.0
         with:
           target_repo: ${{ env.DOCKERHUB_REPO }}

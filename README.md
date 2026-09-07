@@ -7,6 +7,7 @@ You will be guided through instructions to run command lines with tools already 
 ✅ Here is how this lab is structured:
 
 - Introduction to Score
+- The Score Specification
 - Getting started with `score-compose`
 - Getting started with `score-k8s`
 - Advanced scenario with `score-compose`
@@ -36,3 +37,5 @@ On Windows with PowerShell:
 ```bash
 $Env:CONTENT_PATH = (Get-Location).Path; docker compose up --watch
 ```
+
+And to contribute to the content, it's easy, it's just about `.md` files under the `/labspace` folder.

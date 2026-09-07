@@ -9,6 +9,7 @@ You will be guided through instructions to run command lines with tools already 
 ✅ Here is how this lab is structured:
 
 - Introduction to Score
+- The Score Specification
 - Getting started with `score-compose`
 - Getting started with `score-k8s`
 - Advanced scenario with `score-compose`

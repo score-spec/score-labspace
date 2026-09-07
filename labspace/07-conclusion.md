@@ -10,6 +10,8 @@ You’ve completed the **Score Labspace**! 👏
 - How to customize the outputs of the Score implementations with the patch templates feature
 - How to define your own resource types with the resource provisioners feature
 
+![Score workflow](images/score-advanced.png)
+
 🎉 Well done!
 
 ## Next Steps

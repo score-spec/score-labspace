@@ -6,4 +6,4 @@ Score aims to reduce developer toil and cognitive load by enabling the definitio
 
 On one hand ("**Abstraction**"), the Score spec allows **Developers** to define how they want to deploy their Workloads. And on the other hand ("**Standardization**"), **Platform Engineers** define well supported golden paths by using Score implementations supported for their platform(s) with associated resource provisioners.
 
-![Overview of Score](images/overview.png)
+![Overview of Score](images/score-overview.png)

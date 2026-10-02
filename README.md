@@ -22,6 +22,11 @@ You can run this Labspace in its latest version from anywhere (if you have Docke
 docker compose -f oci://scorespec/score-labspace:latest up
 ```
 
+_To clean it up when needed, you can run this command:_
+```bash
+docker compose -f oci://scorespec/score-labspace:latest down --volumes
+```
+
 And then open the labspace in your web browser: http://localhost:3030.
 
 ## Contribute to this Labspace
@@ -34,12 +39,22 @@ On Mac/Linux:
 CONTENT_PATH=$PWD docker compose up --watch
 ```
 
+_To clean it up when needed, you can run this command:_
+```bash
+CONTENT_PATH=$PWD docker compose down --volumes
+```
+
 On Windows with PowerShell:
 
 ```bash
 $Env:CONTENT_PATH = (Get-Location).Path; docker compose up --watch
 ```
 
-And then open the labspace in your web browser: http://localhost:3030.
+_To clean it up when needed, you can run this command:_
+```bash
+$Env:CONTENT_PATH = (Get-Location).Path; docker compose down --volumes
+```
 
-And to contribute to the content, it's easy, it's just about `.md` files under the `/labspace` folder or feel free to file any issues [there](https://github.com/score-spec/score-labspace/issues), thanks, much appreciated!
+Then open the labspace in your web browser: http://localhost:3030.
+
+To contribute to the content of this Labspace, it's easy, it's just about `.md` files under the `/labspace` folder or feel free to file any issues [there](https://github.com/score-spec/score-labspace/issues), thanks, much appreciated!

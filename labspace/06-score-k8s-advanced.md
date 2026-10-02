@@ -114,7 +114,7 @@ score-k8s provisioners list -f json | jq -r .[].Type
 
 See the actual definitions of these resource provisioners here: :fileLink[zz-default.provisioners.yaml]{path=".score-k8s/zz-default.provisioners.yaml"}.
 
-This is a best practice to not use the default pre-defined resource types provisioners and bring your own definitions. You can skip the download of the default provisioners by using the `--no-default-provisioners` option:
+You can use these default pre-defined resource types provisioners or you may want to bring your own definitions more specialized for your context and own needs. You can skip the download of the default provisioners by using the `--no-default-provisioners` option:
 ```bash
 rm -rf .score-k8s
 score-k8s init --no-default-provisioners

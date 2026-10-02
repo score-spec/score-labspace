@@ -22,6 +22,8 @@ You can run this Labspace in its latest version from anywhere (if you have Docke
 docker compose -f oci://scorespec/score-labspace:latest up
 ```
 
+And then open the labspace in your web browser: http://localhost:3030.
+
 ## Contribute to this Labspace
 
 After you cloned this GitHub repository, you can run this Labspace locally by running these commands:
@@ -38,4 +40,6 @@ On Windows with PowerShell:
 $Env:CONTENT_PATH = (Get-Location).Path; docker compose up --watch
 ```
 
-And to contribute to the content, it's easy, it's just about `.md` files under the `/labspace` folder.
+And then open the labspace in your web browser: http://localhost:3030.
+
+And to contribute to the content, it's easy, it's just about `.md` files under the `/labspace` folder or feel free to file any issues [there](https://github.com/score-spec/score-labspace/issues), thanks, much appreciated!

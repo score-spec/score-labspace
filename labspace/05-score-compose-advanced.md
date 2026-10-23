@@ -11,6 +11,14 @@ score-compose generate score.yaml \
     --build 'hello-world={"context":".","tags":["hello-world"]}'
 ```
 
+Authenticate to get access to the base image in the :fileLink[`Dockerfile`]{path="Dockerfile"} coming from the free [dhi.io](https://dhi.io) registry:
+
+```bash
+docker login dhi.io
+```
+
+Build and run the container image:
+
 ```bash
 docker compose up --build -d
 ```

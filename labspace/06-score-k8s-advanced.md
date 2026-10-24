@@ -177,7 +177,7 @@ Validate the resource types supported now:
 score-k8s provisioners list
 ```
 
-Regenerate the `manifests.yaml` file accordingly and see that we don't any error anymore:
+Regenerate the `manifests.yaml` file accordingly and see that we don't have any error anymore:
 ```bash
 score-k8s generate score.yaml \
     --image scorespec/sample-score-app:latest

@@ -147,7 +147,7 @@ Validate the resource types supported now:
 score-compose provisioners list
 ```
 
-Regenerate the `compose.yaml` file accordingly and see that we don't any error anymore:
+Regenerate the `compose.yaml` file accordingly and see that we don't have any error anymore:
 ```bash
 score-compose generate score.yaml \
     --image scorespec/sample-score-app:latest

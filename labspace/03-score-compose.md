@@ -37,7 +37,7 @@ docker ps
 
 Test the deployed workload on :tabLink[localhost:8080]{href="http://localhost:8080" title="App"}.
 
-At this stage, we used two resource types: `postgres`, `dns` and `route`.
+At this stage, we used three resource types: `postgres`, `dns` and `route`.
 
 The available resource types and their inputs/outputs could be discovered like this:
 ```bash

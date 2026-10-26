@@ -11,7 +11,7 @@ score-k8s generate score.yaml \
     --format kyaml
 ```
 
-See the new format of the generated :fileLink[`manifests.yaml`]{path="manifests.yaml" line="17"} file.
+See the new format of the generated :fileLink[`manifests.yaml`]{path="manifests.yaml"} file.
 
 ## `--override-property`
 
@@ -23,6 +23,16 @@ score-k8s generate score.yaml \
 ```
 
 See the new `MESSAGE` value in the generated :fileLink[`manifests.yaml`]{path="manifests.yaml" line="216"} file.
+
+Deploy the updated Kubernetes manifests to update the workload with its new `MESSAGE`:
+```bash
+sudo kubectl apply -f manifests.yaml
+```
+
+Test the deployed workload and see the updated line "`<h1>Hello, Kubernetes!</h1>`":
+```bash
+curl $(score-k8s resources get-outputs dns.default#hello-world.dns --format '{{ .host }}:80')
+```
 
 ## `--namespace`
 

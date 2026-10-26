@@ -35,13 +35,21 @@ See the running containers:
 docker ps
 ```
 
-Test the deployed workload on :tabLink[localhost:8080]{href="http://localhost:8080" title="App"}.
+Test the deployed workload:
+```bash
+curl $(score-compose resources get-outputs dns.default#hello-world.dns --format '{{ .host }}:8080')
+```
 
-At this stage, we used two resource types: `postgres`, `dns` and `route`.
+At this stage, we used three resource types: `postgres`, `dns` and `route`.
 
 The available resource types and their inputs/outputs could be discovered like this:
 ```bash
 score-compose provisioners list
+```
+
+The actual resources managed by the `score-compose` implementation can be listed like this:
+```bash
+score-compose resources list
 ```
 
 We'll explore more about these resource types and provisioners later.

@@ -25,28 +25,38 @@ A new `manifests.yaml` file has been generated, see :fileLink[here]{path="manife
 
 All of this technical details abstracted by the `score-k8s` implementation from the Developer.
 
-Before deploying this `manifests.yaml` to Kubernetes, we need to cluster, create a local `kind` cluster by running this command:
+Before deploying this `manifests.yaml` to Kubernetes, we need a cluster, create a local `kind` cluster by running this command:
 ```bash
 sudo ./scripts/setup-kind-cluster.sh
 ```
+
+_Note: This command will take a few minutes to properly create and set up the Kind cluster._
 
 Deploy these Kubernetes manifests to spin up our workload and its dependencies in Kubernetes cluster:
 ```bash
 sudo kubectl apply -f manifests.yaml
 ```
 
-See the running containers and associated ressources:
+See the running containers and associated resources:
 ```bash
 sudo kubectl get all,statefulset,secret,httproute
 ```
 
-Test the deployed workload on :tabLink[localhost:8080]{href="http://localhost:8080" title="Web app"}.
+Test the deployed workload:
+```bash
+curl $(score-k8s resources get-outputs dns.default#hello-world.dns --format '{{ .host }}:80')
+```
 
-At this stage, we used two resource types: `postgres`, `dns` and `route`.
+At this stage, we used three resource types: `postgres`, `dns` and `route`.
 
 The available resource types and their inputs/outputs could be discovered like this:
 ```bash
 score-k8s provisioners list
+```
+
+The actual resources managed by the `score-k8s` implementation can be listed like this:
+```bash
+score-k8s resources list
 ```
 
 We'll explore more about these resource provisioners later.

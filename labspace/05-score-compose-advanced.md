@@ -11,6 +11,14 @@ score-compose generate score.yaml \
     --build 'hello-world={"context":".","tags":["hello-world"]}'
 ```
 
+Authenticate to get access to the base image in the :fileLink[`Dockerfile`]{path="Dockerfile"} coming from the free [dhi.io](https://dhi.io) registry:
+
+```bash
+docker login dhi.io
+```
+
+Build and run the container image:
+
 ```bash
 docker compose up --build -d
 ```
@@ -24,7 +32,17 @@ score-compose generate score.yaml \
     --override-property containers.hello-world.variables.MESSAGE="Hello, Compose!"
 ```
 
-See the new `MESSAGE` value in the generated :fileLink[`compose.yaml`]{path="compose.yaml" line="17"} file.
+See the new `MESSAGE` value in the generated :fileLink[`compose.yaml`]{path="compose.yaml" line="13"} file.
+
+Use Docker Compose to locally deploy the workload with its updated `MESSAGE`:
+```bash
+docker compose up -d
+```
+
+Test the deployed workload and see the updated line "`<h1>Hello, Compose!</h1>`":
+```bash
+curl $(score-compose resources get-outputs dns.default#hello-world.dns --format '{{ .host }}:8080')
+```
 
 ## `--patch-templates`
 
@@ -53,7 +71,7 @@ score-compose generate score.yaml \
     --image scorespec/sample-score-app:latest
 ```
 
-See the associated new fields and values in the generated :fileLink[`compose.yaml`]{path="compose.yaml" line="23"} file.
+See the associated new fields and values in the generated :fileLink[`compose.yaml`]{path="compose.yaml" line="20"} file.
 
 Instead of using the inlined format, you can use `--patch-templates` with local or external files (Https, Git, OCI), like this:
 ```bash
@@ -139,7 +157,7 @@ Validate the resource types supported now:
 score-compose provisioners list
 ```
 
-Regenerate the `compose.yaml` file accordingly and see that we don't any error anymore:
+Regenerate the `compose.yaml` file accordingly and see that we don't have any error anymore:
 ```bash
 score-compose generate score.yaml \
     --image scorespec/sample-score-app:latest

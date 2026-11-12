@@ -18,7 +18,8 @@ _Note: The `init` command created the `.score-compose` directory to store a loca
 Convert the `score.yaml` file into a deployable `compose.yaml`, run the following command in your terminal:
 ```bash
 score-compose generate score.yaml \
-    --image scorespec/sample-score-app:latest
+    --image scorespec/sample-score-app:latest \
+    --output compose.yaml
 ```
 
 A new `compose.yaml` file has been generated, see :fileLink[here]{path="compose.yaml"}.

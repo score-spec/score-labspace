@@ -18,7 +18,8 @@ _Note: The `init` command created the `.score-k8s` directory to store a local st
 Convert the `score.yaml` file into a deployable `manifests.yaml`, run the following command in your terminal:
 ```bash
 score-k8s generate score.yaml \
-    --image scorespec/sample-score-app:latest
+    --image scorespec/sample-score-app:latest \
+    --output manifests.yaml
 ```
 
 A new `manifests.yaml` file has been generated, see :fileLink[here]{path="manifests.yaml"}.

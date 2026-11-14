@@ -42,14 +42,20 @@ configs:
       mkdir tmp
       cd tmp
 
-      SCORE_COMPOSE_VERSION=$(curl -sL https://api.github.com/repos/score-spec/score-compose/releases/latest | jq -r .tag_name)
-      wget https://github.com/score-spec/score-compose/releases/download/$${SCORE_COMPOSE_VERSION}/score-compose_$${SCORE_COMPOSE_VERSION}_linux_amd64.tar.gz
+      # Resolve the latest release tag from the GitHub redirect instead of the GitHub API,
+      # to avoid hitting the unauthenticated API rate limit when many people run this lab from the same network.
+      latest_tag() {
+        basename "$(curl -sSLo /dev/null -w '%{url_effective}' https://github.com/$${1}/releases/latest)"
+      }
+
+      SCORE_COMPOSE_VERSION=$(latest_tag score-spec/score-compose)
+      wget -q https://github.com/score-spec/score-compose/releases/download/$${SCORE_COMPOSE_VERSION}/score-compose_$${SCORE_COMPOSE_VERSION}_linux_amd64.tar.gz
       tar -xvf score-compose_$${SCORE_COMPOSE_VERSION}_linux_amd64.tar.gz
       chmod +x score-compose
       sudo mv score-compose /usr/local/bin
 
-      SCORE_K8S_VERSION=$(curl -sL https://api.github.com/repos/score-spec/score-k8s/releases/latest | jq -r .tag_name)
-      wget https://github.com/score-spec/score-k8s/releases/download/$${SCORE_K8S_VERSION}/score-k8s_$${SCORE_K8S_VERSION}_linux_amd64.tar.gz
+      SCORE_K8S_VERSION=$(latest_tag score-spec/score-k8s)
+      wget -q https://github.com/score-spec/score-k8s/releases/download/$${SCORE_K8S_VERSION}/score-k8s_$${SCORE_K8S_VERSION}_linux_amd64.tar.gz
       tar -xvf score-k8s_$${SCORE_K8S_VERSION}_linux_amd64.tar.gz
       chmod +x score-k8s
       sudo mv score-k8s /usr/local/bin
@@ -57,7 +63,7 @@ configs:
       cd ..
       rm -rf tmp
 
-      KIND_VERSION=$(curl -sL https://api.github.com/repos/kubernetes-sigs/kind/releases/latest | jq -r .tag_name)
+      KIND_VERSION=$(latest_tag kubernetes-sigs/kind)
       curl -Lo ./kind https://kind.sigs.k8s.io/dl/$${KIND_VERSION}/kind-linux-amd64
       chmod +x ./kind
       sudo mv ./kind /usr/local/bin/kind

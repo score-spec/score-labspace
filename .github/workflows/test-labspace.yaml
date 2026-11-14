@@ -1,0 +1,73 @@
+name: Test Labspace
+
+# Run the whole lab end to end, as a learner would, to make sure changes don't break it.
+# Also runs weekly, as the lab always installs the latest score-compose, score-k8s and kind versions.
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CONTENT_PATH: ${{ github.workspace }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Start the Labspace
+        run: docker compose up -d
+
+      - name: Wait for the workspace setup to complete
+        run: |
+          for i in $(seq 1 60); do
+            if [ "$(docker compose ps workspace --format '{{.State}}')" != "running" ]; then
+              echo "::error::The workspace container is not running"
+              exit 1
+            fi
+            if docker compose exec -T workspace test -x /usr/local/bin/kind; then
+              echo "Workspace is ready"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::Timed out waiting for the workspace setup to complete"
+          exit 1
+
+      - name: Check the workspace tools and IDE setup
+        run: |
+          docker compose exec -T workspace bash -euc '
+            score-compose --version
+            score-k8s --version
+            kind version
+            code-server --list-extensions --show-versions | grep redhat.vscode-yaml
+            jq -e ".\"yaml.schemas\"" ~/project/.vscode/settings.json
+          '
+
+      - name: Run the lab
+        run: |
+          python3 .github/scripts/lab-to-script.py labspace > "$RUNNER_TEMP/lab.sh"
+          docker compose cp "$RUNNER_TEMP/lab.sh" workspace:/tmp/lab.sh
+          docker compose exec -T workspace bash /tmp/lab.sh
+
+      - name: Show the Labspace logs
+        if: failure()
+        run: docker compose logs
+
+      - name: Stop the Labspace
+        if: always()
+        run: docker compose down --volumes

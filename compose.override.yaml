@@ -9,6 +9,8 @@ services:
         target: /usr/local/app/public/docker.svg
 
   workspace:
+    environment:
+      SAMPLE_APP_CLONE_URL: https://github.com/score-spec/sample-score-app
     configs:
       - source: workspace-setup-script
         target: /entrypoint.d/10-setup-script.sh
@@ -38,7 +40,7 @@ configs:
 
       cd project
       rm README.md
-      git clone https://github.com/score-spec/sample-score-app .
+      git clone "$$SAMPLE_APP_CLONE_URL" .
       mkdir tmp
       cd tmp
 

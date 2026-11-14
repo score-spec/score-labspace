@@ -39,6 +39,21 @@ configs:
       cd project
       rm README.md
       git clone https://github.com/score-spec/sample-score-app .
+
+      # Score files validation and autocompletion in VS Code, based on the Score JSON schema:
+      # https://docs.score.dev/docs/score-specification/ide-linter-autocomplete/
+      code-server --install-extension redhat.vscode-yaml@2.0.0
+      mkdir -p .vscode
+      cat > .vscode/settings.json <<EOF
+      {
+        "yaml.schemas": {
+          "https://raw.githubusercontent.com/score-spec/spec/main/score-v1b1.json": ["score.yaml", "*.score.yaml"]
+        },
+        "redhat.telemetry.enabled": false
+      }
+      EOF
+      echo ".vscode/" >> .git/info/exclude
+
       mkdir tmp
       cd tmp
 

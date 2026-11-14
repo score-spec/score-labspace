@@ -160,8 +160,10 @@ You can use these default pre-defined resource types provisioners or you may wan
 
 To experiment with this, we will reset the local state. But first, delete the resources currently deployed in the cluster: the `.score-k8s` directory holds the identity of the provisioned resources (generated names, passwords, labels, ...), deleting it means brand new resources will be generated, and some of them (like the `Deployment`'s selector) can't be updated in place.
 ```bash
-sudo kubectl delete -f manifests.yaml --ignore-not-found
+sudo kubectl delete -f manifests.yaml --ignore-not-found --cascade=foreground
 ```
+
+_Note: The `--cascade=foreground` flag makes the command wait until the pods are actually deleted, not only their `Deployment` and `StatefulSet`._
 
 You can skip the default provisioners by using the `--no-default-provisioners` option:
 ```bash

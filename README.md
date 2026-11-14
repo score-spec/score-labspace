@@ -57,4 +57,6 @@ $Env:CONTENT_PATH = (Get-Location).Path; docker compose down --volumes
 
 Then open the labspace in your web browser: http://localhost:3030.
 
+Every pull request runs the [Test Labspace](.github/workflows/test-labspace.yaml) workflow: it starts the Labspace and runs every `bash` code block of the lab in order, like a learner would. A `bash` block directly followed by a `none` block starting with `Error:` is expected to fail with that error message, and blocks with the `no-run-button` metadata are skipped. See [lab-to-script.py](.github/scripts/lab-to-script.py) for the details.
+
 To contribute to the content of this Labspace, it's easy, it's just about `.md` files under the `/labspace` folder or feel free to file any issues [there](https://github.com/score-spec/score-labspace/issues), thanks, much appreciated!

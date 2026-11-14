@@ -3,6 +3,11 @@ services:
     environment:
       PROJECT_CLONE_URL: https://github.com/score-spec/score-labspace
 
+  interface:
+    configs:
+      - source: score-favicon
+        target: /usr/local/app/public/docker.svg
+
   workspace:
     configs:
       - source: workspace-setup-script
@@ -22,6 +27,9 @@ configs:
             - buildx_buildkit_builder-*
             - label:labspace-resource=true
             - /lib/modules
+
+  score-favicon:
+    file: ./score-icon-color.svg
   
   workspace-setup-script:
     content: |

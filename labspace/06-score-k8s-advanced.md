@@ -26,12 +26,12 @@ See the new `MESSAGE` value in the generated :fileLink[`manifests.yaml`]{path="m
 
 Deploy the updated Kubernetes manifests to update the workload with its new `MESSAGE`:
 ```bash
-sudo kubectl apply -f manifests.yaml
+kubectl apply -f manifests.yaml
 ```
 
 Wait for the new version of the workload to be rolled out:
 ```bash
-sudo kubectl rollout status deployment/hello-world --timeout=120s
+kubectl rollout status deployment/hello-world --timeout=120s
 ```
 
 Test the deployed workload and see the updated line "`<h1>Hello, Kubernetes!</h1>`":
@@ -109,13 +109,13 @@ See the associated new fields and values in the generated :fileLink[`manifests.y
 
 Deploy the patched workload and wait for it to be rolled out:
 ```bash
-sudo kubectl apply -f manifests.yaml
-sudo kubectl rollout status deployment/hello-world --timeout=120s
+kubectl apply -f manifests.yaml
+kubectl rollout status deployment/hello-world --timeout=120s
 ```
 
 Check the `securityContext` now applied to the running pod:
 ```bash
-sudo kubectl get pods -l app.kubernetes.io/name=hello-world \
+kubectl get pods -l app.kubernetes.io/name=hello-world \
     -o jsonpath='{.items[0].spec.containers[0].securityContext}' | jq
 ```
 
@@ -160,7 +160,7 @@ You can use these default pre-defined resource types provisioners or you may wan
 
 To experiment with this, we will reset the local state. But first, delete the resources currently deployed in the cluster: the `.score-k8s` directory holds the identity of the provisioned resources (generated names, passwords, labels, ...), deleting it means brand new resources will be generated, and some of them (like the `Deployment`'s selector) can't be updated in place.
 ```bash
-sudo kubectl delete -f manifests.yaml --ignore-not-found
+kubectl delete -f manifests.yaml --ignore-not-found
 ```
 
 You can skip the default provisioners by using the `--no-default-provisioners` option:
@@ -253,13 +253,13 @@ score-k8s resources list
 
 Deploy the workload with its new resources and wait for the pods to be ready:
 ```bash
-sudo kubectl apply -f manifests.yaml
-sudo kubectl wait pods --all --for=condition=Ready --timeout=180s
+kubectl apply -f manifests.yaml
+kubectl wait pods --all --for=condition=Ready --timeout=180s
 ```
 
 See the `HTTPRoute` now using the `localhost` hostname coming from your own `dns` provisioner:
 ```bash
-sudo kubectl get httproute
+kubectl get httproute
 ```
 
 Test the deployed workload:

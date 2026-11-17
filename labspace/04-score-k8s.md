@@ -42,26 +42,26 @@ Same intent from the Developer, but each implementation follows the best practic
 
 Before deploying this `manifests.yaml` to Kubernetes, we need a cluster, create a local `kind` cluster by running this command:
 ```bash
-sudo ./scripts/setup-kind-cluster.sh
+./scripts/setup-kind-cluster.sh
 ```
 
 _Note: This command will take a minute or two to create the Kind cluster, and install the Gateway API and the NGINX Gateway Fabric controller handling the `HTTPRoute` resources._
 
 Deploy these Kubernetes manifests to spin up our workload and its dependencies in Kubernetes cluster:
 ```bash
-sudo kubectl apply -f manifests.yaml
+kubectl apply -f manifests.yaml
 ```
 
 Wait for the pods to be ready:
 ```bash
-sudo kubectl wait pods --all --for=condition=Ready --timeout=180s
+kubectl wait pods --all --for=condition=Ready --timeout=180s
 ```
 
 _Note: It's expected to see the `hello-world` pod restarting once, it starts faster than the PostgreSQL database it depends on._
 
 See the running containers and associated resources:
 ```bash
-sudo kubectl get all,statefulset,secret,httproute
+kubectl get all,statefulset,secret,httproute
 ```
 
 Test the deployed workload:

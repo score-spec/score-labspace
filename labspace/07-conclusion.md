@@ -26,7 +26,7 @@ You’ve completed the **Score Labspace**! 👏
 The containers and the Kind cluster created during this lab run on your Docker engine, and they won't be removed when you close the Labspace. Remove them now:
 ```bash
 docker compose down --volumes
-sudo kind delete cluster
+kind delete cluster
 ```
 
 ## Next Steps

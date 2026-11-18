@@ -24,6 +24,18 @@ sys.stdout.reconfigure(encoding="utf-8", newline="\n")
 LABSPACE_DIR = sys.argv[1] if len(sys.argv) > 1 else "labspace"
 SKIP_PATTERNS = ["docker login", "docker compose up --build"]
 
+# Steps known to hang intermittently, retried with a shorter timeout after a cleanup command.
+# `kind create cluster` sometimes never returns: a `docker exec` into the kind node, going through
+# the Labspace Docker socket proxy, stays attached after its command is done.
+RETRIES = {
+    "setup-kind-cluster.sh": {"timeout": 300, "attempts": 2, "cleanup": "kind delete cluster"},
+}
+DEFAULT_RETRY = {"timeout": 600, "attempts": 1, "cleanup": ""}
+
+
+def retry_for(body):
+    return next((r for p, r in RETRIES.items() if p in body), DEFAULT_RETRY)
+
 FENCE = re.compile(r"^```(\w*)([^\n]*)\n(.*?)^```", re.S | re.M)
 FILE_LINK = re.compile(r':fileLink\[[^\]]*\]\{path="([^"]+)"')
 
@@ -85,6 +97,7 @@ FAILURES=0
 
 step() {
   local mode=$1 label=$2 arg=$(echo "$3" | base64 -d) body=$(echo "$4" | base64 -d)
+  local step_timeout=${5:-600} attempts=${6:-1} cleanup=$(echo "${7:-}" | base64 -d)
   if [ "$mode" = "save" ]; then
     echo "💾 $label: save as $arg"
     mkdir -p "$(dirname "$arg")" && printf '%s\n' "$body" > "$arg"
@@ -98,9 +111,17 @@ step() {
   echo "::group::▶️  $label"
   echo "$body" | sed 's/^/$ /'
   printf '%s\n' "$body" > /tmp/step.sh
-  timeout 600 bash -eo pipefail /tmp/step.sh > /tmp/step.out 2>&1
-  local rc=$?
-  cat /tmp/step.out
+  local attempt rc
+  for attempt in $(seq 1 "$attempts"); do
+    timeout "$step_timeout" bash -eo pipefail /tmp/step.sh > /tmp/step.out 2>&1
+    rc=$?
+    cat /tmp/step.out
+    if [ $rc -ne 124 ] || [ "$attempt" -eq "$attempts" ]; then
+      break
+    fi
+    echo "::warning title=Lab step timed out::$label timed out after ${step_timeout}s (attempt $attempt of $attempts), retrying after: $cleanup"
+    bash -c "$cleanup" 2>&1 | sed 's/^/    /'
+  done
   echo "::endgroup::"
   if [ "$mode" = "run" ] && [ $rc -ne 0 ]; then
     echo "::error title=Lab step failed::$label exited with code $rc"
@@ -127,7 +148,11 @@ check_file_link() {
 ''')
 
 for mode, label, arg, body in steps():
-    print(f"step {mode} '{label}' '{b64(arg)}' '{b64(body)}'")
+    retry = retry_for(body)
+    print(
+        f"step {mode} '{label}' '{b64(arg)}' '{b64(body)}'"
+        f" {retry['timeout']} {retry['attempts']} '{b64(retry['cleanup'])}'"
+    )
 
 print('\necho "::group::Checking fileLink paths"')
 for path in file_links():

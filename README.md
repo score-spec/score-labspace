@@ -29,6 +29,40 @@ docker compose -f oci://scorespec/score-labspace:latest down --volumes
 
 And then open the labspace in your web browser: http://localhost:3030.
 
+## Run this Labspace in a Docker Sandbox
+
+You can also run this Labspace in a [Docker Sandbox](https://docs.docker.com/ai/sandboxes/) (`sbx`), a microVM with its own Docker engine, by using the Labspace kit from [labsbxes](https://github.com/mathieu-benoit/labsbxes). This repository is a content kit for it: [score-labspace.yaml](score-labspace.yaml) and [score-labspace.dockerfile](score-labspace.dockerfile) carry the instructions, the sample app and the tools of the lab (`score-compose`, `score-k8s`, `kind`, `kubectl` and `helm`).
+
+Allow the kits from `ghcr.io/mathieu-benoit/` (by default, `sbx` only installs kits from `docker.io/` and `dhi.io/`):
+
+```bash
+sbx settings set kit.allowedSources '["docker.io/","dhi.io/","ghcr.io/mathieu-benoit/"]'
+```
+
+Clone this repository, then run the Labspace from an empty folder next to it (a folder with a `labspace/labspace.yaml` file, like this repository, would be used as the lab content instead of the kit):
+
+```bash
+git clone https://github.com/score-spec/score-labspace
+mkdir score-lab && cd score-lab
+sbx run shell \
+  --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.3 \
+  --kit ../score-labspace \
+  -p 3030:3030 -p 8085:8085 -p 8080:8080 \
+  --name score-lab -d
+```
+
+And then open the labspace in your web browser: http://localhost:3030.
+
+- `-p 3030:3030` pins the labspace's address, without it `sbx` picks a random host port: `sbx port ls score-lab` lists it.
+- `-p 8085:8085` is required: the labspace embeds the IDE at http://localhost:8085.
+- `-p 8080:8080` is optional: it lets you open the workload deployed with `score-compose` from your own web browser.
+- Everything the lab creates (containers, the Kind cluster) runs on the sandbox's own Docker engine, not on yours.
+
+_To clean it up when needed, you can run this command:_
+```bash
+sbx rm score-lab
+```
+
 ## Contribute to this Labspace
 
 After you cloned this GitHub repository, you can run this Labspace locally by running these commands:

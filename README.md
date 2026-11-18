@@ -29,6 +29,39 @@ docker compose -f oci://scorespec/score-labspace:latest down --volumes
 
 And then open the labspace in your web browser: http://localhost:3030.
 
+## Run this Labspace in a Docker Sandbox
+
+You can also run this Labspace in a [Docker Sandbox](https://docs.docker.com/ai/sandboxes/) (`sbx`), a microVM with its own Docker engine, by using the Labspace kit from [labsbxes](https://github.com/mathieu-benoit/labsbxes). This repository is a content kit for it: [score-labspace.yaml](score-labspace.yaml) and [score-labspace.dockerfile](score-labspace.dockerfile) carry the instructions, the sample app and the tools of the lab (`score-compose`, `score-k8s`, `kind`, `kubectl` and `helm`).
+
+Allow the kits from `ghcr.io/mathieu-benoit/` and `ghcr.io/score-spec/` (by default, `sbx` only installs kits from `docker.io/` and `dhi.io/`):
+
+```bash
+sbx settings set kit.allowedSources '["docker.io/","dhi.io/","ghcr.io/mathieu-benoit/","ghcr.io/score-spec/"]'
+```
+
+Then run the Labspace from an empty folder (a folder with a `labspace/labspace.yaml` file, like a clone of this repository, would be used as the lab content instead of the kit):
+
+```bash
+mkdir score-lab && cd score-lab
+sbx run shell \
+  --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.3 \
+  --kit ghcr.io/score-spec/score-labspace/kit:latest \
+  -p 3030:3030 -p 8085:8085 -p 8080:8080 \
+  --name score-lab -d
+```
+
+And then open the labspace in your web browser: http://localhost:3030.
+
+- `-p 3030:3030` pins the labspace's address, without it `sbx` picks a random host port: `sbx port ls score-lab` lists it.
+- `-p 8085:8085` is required: the labspace embeds the IDE at http://localhost:8085.
+- `-p 8080:8080` is optional: it lets you open the workload deployed with `score-compose` from your own web browser.
+- Everything the lab creates (containers, the Kind cluster) runs on the sandbox's own Docker engine, not on yours.
+
+_To clean it up when needed, you can run this command:_
+```bash
+sbx rm score-lab
+```
+
 ## Contribute to this Labspace
 
 After you cloned this GitHub repository, you can run this Labspace locally by running these commands:
@@ -56,6 +89,18 @@ $Env:CONTENT_PATH = (Get-Location).Path; docker compose down --volumes
 ```
 
 Then open the labspace in your web browser: http://localhost:3030.
+
+To run your local changes in a Docker Sandbox, replace `--kit ghcr.io/score-spec/score-labspace/kit:latest` by the path of your clone, for example `--kit ../score-labspace`, and run `sbx` from an empty folder next to it.
+
+The [Publish the Docker Sandbox kit](.github/workflows/publish-kit.yaml) workflow builds this kit for `linux/amd64` and `linux/arm64`, and checks it with `kit-tck`:
+
+| Event | What it does |
+|---|---|
+| Pull request | Builds the kit and validates it; pushes nothing. |
+| Push of a `v*` tag | Publishes `ghcr.io/score-spec/score-labspace/kit:<version>` and `:latest`. A version that already exists is skipped. |
+| Manual run on `main` | Publishes `:edge` and `:sha-<short>`. |
+
+To release, bump `version:` in [score-labspace.yaml](score-labspace.yaml), merge, then push the matching tag (`git tag v0.2.0 && git push origin v0.2.0`): the workflow fails if the tag doesn't name the kit's version.
 
 Every pull request runs the [Test Labspace](.github/workflows/test-labspace.yaml) workflow: it starts the Labspace and runs every `bash` code block of the lab in order, like a learner would. A `bash` block directly followed by a `none` block starting with `Error:` is expected to fail with that error message, and blocks with the `no-run-button` metadata are skipped. See [lab-to-script.py](.github/scripts/lab-to-script.py) for the details.
 

@@ -1,0 +1,204 @@
+name: Publish the Docker Sandbox kit
+
+# Builds the content kit of this Labspace (score-labspace.yaml +
+# score-labspace.dockerfile) and publishes it to this repository's container
+# registry (GHCR), as ghcr.io/<owner>/<repo>/kit. It runs with the Labspace kit
+# from https://github.com/mathieu-benoit/labsbxes.
+#
+# What gets pushed, by event:
+#
+#   pull request          nothing: the kit is built to a local OCI layout and
+#                         checked with kit-tck, so a broken kit fails the PR
+#   push of a v* tag      :<version from the kit's descriptor> and :latest
+#   manual run on main    :edge and :sha-<short> (elsewhere: build only)
+#
+# Commits to main do not publish anything on their own.
+#
+# A release tag must name the descriptor's `version:` (v0.1.0 releases 0.1.0),
+# and never overwrites a version that already exists, so a published version
+# always means the same content.
+
+on:
+  pull_request:
+    paths:
+      - "score-labspace.yaml"
+      - "score-labspace.dockerfile"
+      - "labspace/**"
+      - ".github/workflows/publish-kit.yaml"
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Two runs on the same ref must not race to move a tag.
+concurrency:
+  group: publish-kit-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  DESCRIPTOR: score-labspace.yaml
+  # kit-tck, the Sandbox Kit specification's conformance checker. Pinned, and
+  # verified against the release's checksums.txt before it runs.
+  KIT_TCK_VERSION: 3.0.0-m.12
+
+jobs:
+  kit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # push to ghcr.io/<owner>/<repo>/kit
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Decide what this run does and what to call the result.
+      - name: Resolve image name and tags
+        id: meta
+        env:
+          EVENT: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+
+          # The descriptor is the version authority (top-level `version:` only;
+          # nested keys are indented).
+          version="$(sed -n 's/^version:[[:space:]]*"\{0,1\}\([^"[:space:]#]*\).*/\1/p' "$DESCRIPTOR" | head -n 1)"
+          if [ -z "$version" ]; then
+            echo "::error file=$DESCRIPTOR::no top-level version: found"
+            exit 1
+          fi
+
+          if [[ "$REF" == refs/tags/v* ]] && [ "${REF#refs/tags/v}" != "$version" ]; then
+            echo "::error::Release tag ${REF#refs/tags/} does not match the kit's version ${version}. Tag v${version}, or bump version: in ${DESCRIPTOR}."
+            exit 1
+          fi
+
+          image="${REGISTRY}/${GITHUB_REPOSITORY,,}/kit"
+
+          publish=false
+          tags="${image}:ci-build"
+          primary="${image}:ci-build"
+          if [ "$EVENT" != "pull_request" ]; then
+            if [[ "$REF" == refs/tags/v* ]]; then
+              publish=true
+              tags="${image}:${version},${image}:latest"
+              primary="${image}:${version}"
+            elif [ "$REF" = "refs/heads/main" ]; then
+              publish=true
+              tags="${image}:edge,${image}:sha-${GITHUB_SHA::7}"
+              primary="${image}:edge"
+            fi
+          fi
+
+          {
+            echo "version=$version"
+            echo "publish=$publish"
+            echo "tags=$tags"
+            echo "primary=$primary"
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+        with:
+          platforms: arm64
+
+      # The default docker-container driver is what a Kit needs: it keeps the
+      # manifest annotations that carry the descriptor.
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: Log in to ghcr.io
+        if: steps.meta.outputs.publish == 'true'
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Releases only: keep published versions immutable.
+      - name: Skip a version that is already published
+        id: exists
+        if: steps.meta.outputs.publish == 'true' && startsWith(github.ref, 'refs/tags/v')
+        env:
+          PRIMARY: ${{ steps.meta.outputs.primary }}
+        run: |
+          if docker buildx imagetools inspect "$PRIMARY" > /dev/null 2>&1; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::$PRIMARY already exists; not republishing. Bump version: in ${DESCRIPTOR} to release a new one."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # The `# syntax=docker/sandbox-kit:3` line of the descriptor makes BuildKit
+      # run the Kit frontend, which validates the descriptor and attaches it to
+      # the image. mode=min is what the spec asks for with multi-platform builds
+      # (the descriptor ends up on every platform manifest and on the index).
+      - name: Build${{ steps.meta.outputs.publish == 'true' && ' and push' || '' }}
+        if: steps.exists.outputs.skip != 'true'
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: ${{ env.DESCRIPTOR }}
+          platforms: linux/amd64,linux/arm64
+          provenance: mode=min
+          sbom: false
+          push: ${{ steps.meta.outputs.publish == 'true' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          # When nothing is pushed, export the kit as an OCI layout (a directory)
+          # so kit-tck can judge exactly what would have been published. The
+          # layout names the image by its tag, ci-build.
+          outputs: ${{ steps.meta.outputs.publish != 'true' && format('type=oci,dest={0}/kit-layout,tar=false', runner.temp) || '' }}
+
+      # kit-tck is the spec's conformance checker. On a pull request it reads the
+      # OCI layout above; after a publish it reads the registry, because the
+      # frontend's own checks cannot see metadata an exporter or a registry drops.
+      - name: Install kit-tck
+        if: steps.exists.outputs.skip != 'true'
+        run: |
+          set -euo pipefail
+          base="https://github.com/docker/sandbox-kit-spec/releases/download/v${KIT_TCK_VERSION}"
+          archive="kit-tck_${KIT_TCK_VERSION}_linux_amd64.tar.gz"
+          mkdir -p "$RUNNER_TEMP/kit-tck"
+          cd "$RUNNER_TEMP/kit-tck"
+          curl -fsSL -O "$base/$archive"
+          curl -fsSL -O "$base/checksums.txt"
+          grep " ${archive}\$" checksums.txt | sha256sum -c -
+          tar -xzf "$archive"
+          echo "$RUNNER_TEMP/kit-tck" >> "$GITHUB_PATH"
+
+      - name: Validate the kit with kit-tck
+        if: steps.exists.outputs.skip != 'true'
+        env:
+          PUBLISH: ${{ steps.meta.outputs.publish }}
+          PRIMARY: ${{ steps.meta.outputs.primary }}
+        run: |
+          if [ "$PUBLISH" = "true" ]; then
+            kit-tck validate "$PRIMARY"
+          else
+            kit-tck validate --layout "$RUNNER_TEMP/kit-layout" ci-build
+          fi
+
+      - name: Summary
+        if: always()
+        env:
+          PUBLISH: ${{ steps.meta.outputs.publish }}
+          SKIP: ${{ steps.exists.outputs.skip }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          {
+            echo "### kit ${VERSION}"
+            if [ "$PUBLISH" != "true" ]; then
+              echo "Built and checked with kit-tck from an OCI layout (nothing pushed)."
+            elif [ "$SKIP" = "true" ]; then
+              echo "Skipped: this version is already published."
+            else
+              echo "Published:"
+              echo
+              echo "$TAGS" | tr ',' '\n' | while read -r tag; do
+                echo "- \`$tag\`"
+              done
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

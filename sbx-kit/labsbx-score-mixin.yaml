@@ -1,35 +1,42 @@
 # syntax=docker/sandbox-kit:3
 #
-# The Score Labspace as a content kit for Docker Sandboxes, run by the Labspace
-# kit from https://github.com/mathieu-benoit/labsbxes:
+# The Score Labspace as a content kit for Docker Sandboxes. It carries the
+# lab's instructions (labspace/), the sample app the learner works on, and the
+# tools the lab uses (score-compose, score-k8s, kind, kubectl, helm);
+# everything that runs them comes from the Labspace kit published by
+# https://github.com/mathieu-benoit/labsbxes.
 #
-#   sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:0.1.3 --kit <this folder>
+#   sbx run shell \
+#     --kit ghcr.io/mathieu-benoit/labsbxes/labspace:latest \
+#     --kit ghcr.io/score-spec/labsbx-score-mixin:latest \
+#     -p 3030:3030 -p 8085:8085 -p 8080:8080 --name score-lab
 #
-# It carries the lab's instructions (labspace/), the sample app the learner
-# works on (project/), and the tools the lab uses (score-compose, score-k8s,
-# kind, kubectl, helm). See score-labspace.dockerfile.
+# See docs/sbx.md, and labsbx-score.yaml for the same thing as one reference.
 schemaVersion: "3"
 kind: mixin
 
 displayName: Score Labspace (content)
 description: >-
   The Score Labspace: deploy the same score.yaml file to Docker Compose and to
-  Kubernetes with score-compose and score-k8s. To be run by the Labspace kit.
+  Kubernetes with score-compose and score-k8s, to be run by the Labspace kit.
 
 version: "0.1.0"
 
+# Becomes the org.opencontainers.image.source annotation, which is what links
+# the published GHCR package to this repository.
 sourceUrl: https://github.com/score-spec/score-labspace
 
-# The Labspace kit provides `labspace`: without it, this kit fails at
+# The Labspace kit provides `labspace`. Composing this kit without it fails at
 # resolution instead of producing a sandbox with files and nothing to show them.
 requires: ["labspace >= 0.1.0"]
 
-# One lab per sandbox.
+# One lab per sandbox: a second content kit provides the same name, and the
+# runtime refuses the composition.
 provides: ["labspace-content@0.1.0"]
 
 capabilities:
   # The workload deployed with score-compose listens on port 8080
-  # (http://<dns>.localhost:8080). sbx picks the host port (sbx ports <name>),
+  # (http://<dns>.localhost:8080). sbx picks the host port (sbx port ls <name>),
   # -p 8080:8080 pins it to open the same URL from your own web browser.
   - type: com.docker.sandbox/port@1
     config:
@@ -37,6 +44,7 @@ capabilities:
       container: 8080
       transport: tcp
 
+  # The Labspace kit only allows Docker Hub pulls and Open VSX.
   - type: com.docker.sandbox/network-policy@1
     config:
       runtime:
@@ -56,15 +64,12 @@ capabilities:
           - pkg-containers.githubusercontent.com
           # Docker Hardened Images, used by the sample app's Dockerfile.
           - dhi.io
-          # The VS Code YAML extension, installed at create.
-          - open-vsx.org
-          - openvsx.eclipsecontent.org
 
   - type: com.docker.sandbox/lifecycle@1
     config:
       install:
         # Score files validation and autocompletion in VS Code, based on the
-        # Score JSON schema (the settings are in project/.vscode/settings.json):
+        # Score JSON schema (the settings are in the project's .vscode/settings.json):
         # https://docs.score.dev/docs/score-specification/ide-linter-autocomplete/
         - command: code-server --install-extension redhat.vscode-yaml@2.0.0
           user: "1000"
@@ -78,3 +83,9 @@ capabilities:
         - command: sh -c '[ -e /dev/kmsg ] || mknod /dev/kmsg c 1 11'
           user: "0"
           description: Create /dev/kmsg for the Kind cluster
+
+        # Run from a clone (--kit ./sbx-kit), the IDE opens the clone's
+        # project/ folder, which has no sample app: copy it there once.
+        - command: /opt/score-labspace/seed-project.sh
+          user: "1000"
+          description: Copy the sample app into the project folder when it has none

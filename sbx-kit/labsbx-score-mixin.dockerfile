@@ -5,6 +5,14 @@
 #   - the lab's instructions and the sample app land where the Labspace kit
 #     looks for them (/opt/labspace/content/{labspace,project}),
 #   - the tools the lab uses land in /usr/local/bin.
+#
+# The build context is the repository root (CI, see docs/sbx.md):
+#   docker buildx build . -f sbx-kit/labsbx-score-mixin.yaml
+#
+# The `[e]` wildcard makes the COPY of labspace/ a no-op when the folder isn't
+# in the context, which is the case when sbx builds this folder on its own
+# (`--kit ./sbx-kit` from a clone): the Labspace kit then serves the clone's
+# own labspace/, and seed-project.sh copies the sample app into its project/.
 
 FROM alpine:3.22 AS build
 ARG TARGETARCH
@@ -17,7 +25,7 @@ set -eux
 latest_tag() {
   basename "$(curl -fsSLo /dev/null -w '%{url_effective}' "https://github.com/$1/releases/latest")"
 }
-mkdir -p /out/usr/local/bin /tmp/dl
+mkdir -p /out/usr/local/bin /out/usr/local/lib/score-labspace /tmp/dl
 cd /tmp/dl
 
 for tool in score-compose score-k8s; do
@@ -27,7 +35,6 @@ for tool in score-compose score-k8s; do
 done
 
 version=$(latest_tag kubernetes-sigs/kind)
-mkdir -p /out/usr/local/lib/score-labspace
 curl -fsSLo /out/usr/local/lib/score-labspace/kind "https://kind.sigs.k8s.io/dl/${version}/kind-linux-${TARGETARCH}"
 
 version=$(curl -fsSL https://dl.k8s.io/release/stable.txt)
@@ -62,6 +69,16 @@ done
 kubectl wait nodes --all --for=condition=Ready --timeout=180s >/dev/null
 EOF
 
+# Startup hook, after the Labspace kit staged the lab: when the folder the IDE
+# opens has no score.yaml (the clone's project/ folder, when run from a clone),
+# copy the sample app into it, without overwriting what is there.
+COPY --chmod=0755 <<'EOF' /out/opt/score-labspace/seed-project.sh
+#!/bin/sh
+set -eu
+project="$(cat /labspace/project-dir)"
+[ -f "$project/score.yaml" ] || cp -rn /opt/labspace/content/project/. "$project/"
+EOF
+
 # The sample app is the project the learner works on.
 RUN <<'EOF'
 set -eux
@@ -82,4 +99,4 @@ EOF
 
 FROM scratch
 COPY --from=build /out /
-COPY labspace /opt/labspace/content/labspace
+COPY labspac[e] /opt/labspace/content/labspace

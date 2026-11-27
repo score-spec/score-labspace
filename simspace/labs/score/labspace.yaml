@@ -1,0 +1,287 @@
+title: "Score Labspace (Simulated)"
+description: "Deploy the same score.yaml file to Docker Compose and to Kubernetes with score-compose and score-k8s, all in your browser."
+
+# Catalog card metadata (only shown on a landing page with two or more labs).
+# labs.json is GENERATED from this block: never write or commit it.
+catalog:
+  icon: sports_score
+  tags: ["score", "score-compose", "score-k8s", "docker compose", "kubernetes"]
+  estimatedMinutes: 30
+
+# Bump this whenever you add, remove or rename steps: stored progress is
+# namespaced per version, so stale completion records are cleared.
+version: "1.0.0"
+
+# Command behaviour lives in simulator.yaml (relative to this file).
+simulator: simulator.yaml
+
+# One terminal, opened on the lab's project folder, like the hands-on lab's IDE
+# terminal.
+terminals:
+  - id: terminal
+    title: Terminal
+    icon: terminal
+
+sections:
+  - title: Overview
+    contentPath: 00-overview.md
+
+  - title: Introduction
+    contentPath: 01-introduction.md
+
+  - title: Score Spec
+    contentPath: 02-score-spec.md
+
+  - title: Getting started with score-compose
+    contentPath: 03-score-compose.md
+    steps:
+      - id: sc-init
+        title: "Initialize score-compose"
+      - id: sc-generate
+        title: "Generate the compose.yaml file"
+      - id: compose-up
+        title: "Deploy with Docker Compose"
+      - id: compose-test
+        title: "Test the workload"
+      - id: sc-outputs
+        title: "Get the outputs of the postgres resource"
+
+  - title: Getting started with score-k8s
+    contentPath: 04-score-k8s.md
+    steps:
+      - id: k-init
+        title: "Initialize score-k8s"
+      - id: k-generate
+        title: "Generate the manifests.yaml file"
+      - id: kind-cluster
+        title: "Create the Kind cluster"
+      - id: k-apply
+        title: "Deploy to Kubernetes"
+      - id: k-wait
+        title: "Wait for the pods"
+      - id: k-test
+        title: "Test the workload"
+
+  - title: Advanced scenario with score-compose
+    contentPath: 05-score-compose-advanced.md
+    steps:
+      - id: sc-build
+        title: "Build and run the image"
+      - id: sc-override
+        title: "Override the MESSAGE"
+      - id: sc-patch
+        title: "Apply a patch template"
+      - id: sc-unprivileged
+        title: "Check the unprivileged container"
+      - id: sc-no-default
+        title: "Skip the default provisioners"
+      - id: sc-custom-dns
+        title: "Bring your own dns provisioner"
+      - id: sc-localhost
+        title: "Test with the localhost hostname"
+
+  - title: Advanced scenario with score-k8s
+    contentPath: 06-score-k8s-advanced.md
+    steps:
+      - id: k-kyaml
+        title: "Generate kyaml"
+      - id: k-override
+        title: "Override the MESSAGE"
+      - id: k-namespace
+        title: "Generate a Namespace"
+      - id: k-patch
+        title: "Check the securityContext of the pod"
+      - id: k-service-account
+        title: "Add a ServiceAccount"
+      - id: k-no-default
+        title: "Skip the default provisioners"
+      - id: k-custom-dns
+        title: "Bring your own dns provisioner"
+      - id: k-localhost
+        title: "Test with the localhost hostname"
+
+  - title: Conclusion
+    contentPath: 07-conclusion.md
+    steps:
+      - id: cleanup
+        title: "Clean up"
+
+# The lab's project, copied from ../../../project (the folder the hands-on lab
+# opens in its IDE, from the sample-score-app repository). Only the files the
+# lab uses are kept.
+files:
+  score.yaml: |
+    apiVersion: score.dev/v1b1
+    metadata:
+      name: hello-world
+      annotations:
+        tags: "nodejs,http,website,javascript"
+    containers:
+      hello-world:
+        image: .
+        variables:
+          PORT: "3000"
+          MESSAGE: "Hello, World!"
+          DB_DATABASE: ${resources.db.name}
+          DB_USER: ${resources.db.username}
+          DB_PASSWORD: ${resources.db.password}
+          DB_HOST: ${resources.db.host}
+          DB_PORT: ${resources.db.port}
+    resources:
+      db:
+        type: postgres
+      dns:
+        type: dns
+      route:
+        type: route
+        params:
+          host: ${resources.dns.host}
+          path: /
+          port: 8080
+    service:
+      ports:
+        www:
+          port: 8080
+          targetPort: 3000
+  Dockerfile: |
+    FROM dhi.io/node:26-alpine3.24-dev AS builder
+    WORKDIR /usr/src/app
+    COPY package*.json ./
+    RUN npm install --only=prod
+
+    FROM dhi.io/node:26-alpine3.24
+    WORKDIR /usr/src/app
+    COPY --from=builder /usr/src/app/node_modules ./node_modules
+    COPY index.js index.js
+    EXPOSE 3000
+    CMD ["node", "index.js"]
+  index.js: |
+    const http = require("http");
+    const { Client } = require("pg");
+
+    const host = process.env.DB_HOST || "localhost";
+    const client = new Client({
+      host,
+      user: process.env.DB_USER || "postgres",
+      password: process.env.DB_PASSWORD || "secret",
+      database: process.env.DB_DATABASE || "score",
+      port: process.env.DB_PORT || 5432,
+    });
+
+    const requestHandler = async (request, response) => {
+      console.log(request.url);
+
+      const message = process.env.MESSAGE || "Hello, World!";
+
+      // Run hello world query
+      const serverVersionRes = await client.query(
+        `SHOW server_version;`
+      );
+      const serverVersion = serverVersionRes.rows[0].server_version;
+
+      const versionRes = await client.query(
+        `SELECT version();`
+      );
+      const version = versionRes.rows[0].version;
+
+      const html = `
+      <html>
+        <body>
+          <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+          <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+          <div class="container text-center mt-5 pt-5">
+            <h1>${message}</h1>
+            <p>This is an application talking to a PostgreSQL <code>${serverVersion}</code> database on host <code>${host}</code>, deployed with Score!</p>
+            <p><code></p>
+            <p>
+              <pre>
+              SELECT version();
+              ${version}
+              </pre>
+            </p>
+          </div>
+        </body>
+      </html>
+      `;
+
+      response.end(html);
+    };
+
+    const App = async () => {
+      // create the connection to database
+      await client.connect();
+
+      const server = http.createServer(requestHandler);
+
+      const port = process.env.PORT || 8080;
+
+      server.listen(port, (err) => {
+        if (err) {
+          return console.log("something bad happened", err);
+        }
+
+        console.log(`server is listening on ${port}`);
+      });
+    };
+
+    App();
+
+    // Exit the process when signal is received (For docker)
+    ["SIGINT", "SIGTERM"].forEach((signal) => {
+      process.on(signal, () => {
+        process.exit();
+      });
+    });
+  package.json: |
+    {
+      "name": "hello-world",
+      "version": "1.0.0",
+      "description": "An Hello World workload in NodeJS talking to a PostgreSQL database.",
+      "main": "index.js",
+      "author": "score.dev",
+      "license": "MIT",
+      "private": true,
+      "dependencies": {
+        "pg": "^8.23.1"
+      }
+    }
+  scripts/setup-kind-cluster.sh: |
+    #!/bin/bash
+    set -o errexit
+
+    cat <<EOF | kind create cluster --config=-
+    kind: Cluster
+    apiVersion: kind.x-k8s.io/v1alpha4
+    nodes:
+    - role: control-plane
+      extraPortMappings:
+      - containerPort: 31000
+        hostPort: 80
+        protocol: TCP
+    EOF
+
+    GATEWAY_API_VERSION=$(curl -sL https://api.github.com/repos/kubernetes-sigs/gateway-api/releases/latest | jq -r .tag_name)
+    kubectl apply \
+        -f https://github.com/kubernetes-sigs/gateway-api/releases/download/${GATEWAY_API_VERSION}/standard-install.yaml
+
+    helm install ngf oci://ghcr.io/nginxinc/charts/nginx-gateway-fabric \
+        --create-namespace \
+        -n nginx-gateway \
+        --set service.type=NodePort \
+        --set-json 'service.ports=[{"port":80,"nodePort":31000}]'
+
+    kubectl apply -f - <<EOF
+    apiVersion: gateway.networking.k8s.io/v1
+    kind: Gateway
+    metadata:
+      name: default
+    spec:
+      gatewayClassName: nginx
+      listeners:
+      - name: http
+        port: 80
+        protocol: HTTP
+        allowedRoutes:
+          namespaces:
+            from: All
+    EOF

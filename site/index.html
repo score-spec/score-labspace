@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Score Labspace</title>
+  <meta name="description" content="Three ways to run the Score Labspace: in a Docker Sandbox, with Docker Compose, or simulated in your browser.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=block">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="page">
+    <header class="hero">
+      <div class="brand">
+        <span class="brand-logo"><img src="favicon.svg" alt=""></span>
+        <span class="eyebrow">Score, a CNCF Sandbox project</span>
+      </div>
+      <h1>Score Labspace</h1>
+      <p class="subtitle">
+        Describe a workload once in a <code>score.yaml</code> file, then deploy it to Docker Compose with
+        <code>score-compose</code> and to Kubernetes with <code>score-k8s</code>, and customize how it gets deployed
+        without touching the Developer's file. Pick how you want to run the lab.
+      </p>
+    </header>
+
+    <ul class="options">
+      <li>
+        <article class="option option-recommended">
+          <div class="option-head">
+            <span class="option-icon"><span class="material-symbols-outlined" aria-hidden="true">deployed_code</span></span>
+            <div>
+              <span class="badge"><span class="material-symbols-outlined" aria-hidden="true">star</span>Recommended</span>
+              <h2>In a Docker Sandbox</h2>
+            </div>
+          </div>
+          <p>
+            Instructions, VS Code and a private Docker engine (the Kind cluster included) in a single microVM, with <code>sbx</code>.
+            Nothing to clean up on your machine afterwards: <code>sbx rm</code> removes everything the lab created.
+            Then open <code>http://localhost:3030</code>.
+          </p>
+          <p class="note">
+            <span class="material-symbols-outlined" aria-hidden="true">info</span>
+            <span>No AI agent is involved: Docker Sandboxes runs its plain <code>shell</code> sandbox, and you type every command yourself.</span>
+          </p>
+          <div class="cmd">
+            <code>sbx run docker.io/scorespec/score-labsbx:latest -p 3030:3030 -p 8085:8085 -p 8080:8080 --name score-lab -d</code>
+            <button class="copy" type="button" aria-label="Copy the command" title="Copy"><span class="material-symbols-outlined" aria-hidden="true">content_copy</span></button>
+          </div>
+          <ul class="chips"><li>sbx</li><li>kit set</li><li>microVM</li></ul>
+          <a class="btn btn-primary" href="sbx.html">
+            How to run it<span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+          </a>
+        </article>
+      </li>
+
+      <li>
+        <article class="option">
+          <div class="option-head">
+            <span class="option-icon"><span class="material-symbols-outlined" aria-hidden="true">stacks</span></span>
+            <div>
+              <h2>With Docker Compose</h2>
+            </div>
+          </div>
+          <p>
+            The Labspace on the labspace-infra Compose stack, anywhere Docker/Podman and Docker/Podman Compose
+            are installed. Then open <code>http://localhost:3030</code>.
+          </p>
+          <div class="cmd">
+            <code>docker compose -f oci://scorespec/score-labspace:latest up</code>
+            <button class="copy" type="button" aria-label="Copy the command" title="Copy"><span class="material-symbols-outlined" aria-hidden="true">content_copy</span></button>
+          </div>
+          <ul class="chips"><li>docker compose</li><li>labspace-infra</li></ul>
+          <a class="btn" href="compose.html">
+            How to run it<span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+          </a>
+        </article>
+      </li>
+
+      <li>
+        <article class="option">
+          <div class="option-head">
+            <span class="option-icon"><span class="material-symbols-outlined" aria-hidden="true">play_circle</span></span>
+            <div>
+              <h2>Simulated, in your browser</h2>
+            </div>
+          </div>
+          <p>
+            A Simspace: the same lab with a scripted terminal, right here in the browser. Nothing to install:
+            preview the lab, revisit it afterwards, or follow it where you can't run Docker or Kubernetes.
+          </p>
+          <ul class="chips"><li>simspace</li><li>no install</li><li>about 30 minutes</li></ul>
+          <a class="btn" href="simspace/">
+            Start the simulation<span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+          </a>
+        </article>
+      </li>
+    </ul>
+
+    <section class="compare" aria-labelledby="compare-title">
+      <h2 id="compare-title">How the options differ</h2>
+      <div class="compare-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col"></th>
+              <th scope="col">Docker Sandbox</th>
+              <th scope="col">Docker Compose</th>
+              <th scope="col">Simulated</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">You need</th>
+              <td>The <code>sbx</code> CLI</td>
+              <td>Docker/Podman and Docker/Podman Compose</td>
+              <td>A web browser</td>
+            </tr>
+            <tr>
+              <th scope="row">Where it runs</th>
+              <td>A microVM with its own private Docker engine</td>
+              <td>Containers on your machine's Docker engine</td>
+              <td>Entirely in your browser</td>
+            </tr>
+            <tr>
+              <th scope="row">Commands</th>
+              <td>Real</td>
+              <td>Real</td>
+              <td>Scripted: same output for everyone</td>
+            </tr>
+            <tr>
+              <th scope="row">Kubernetes</th>
+              <td>A Kind cluster, in the microVM</td>
+              <td>A Kind cluster, on your Docker engine</td>
+              <td>Simulated</td>
+            </tr>
+            <tr>
+              <th scope="row">Editing files</th>
+              <td>VS Code in the browser</td>
+              <td>VS Code in the browser</td>
+              <td>Save buttons</td>
+            </tr>
+            <tr>
+              <th scope="row">Clean up</th>
+              <td><code>sbx rm</code> removes everything the lab created</td>
+              <td><code>docker compose down --volumes</code>, plus the lab's own clean up</td>
+              <td>Nothing to clean up</td>
+            </tr>
+            <tr>
+              <th scope="row">Best for</th>
+              <td>Taking the lab, isolated from your machine</td>
+              <td>Taking the lab where <code>sbx</code> isn't available</td>
+              <td>Previewing, revisiting or teaching the lab</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer class="footer">
+      Source on <a href="https://github.com/score-spec/score-labspace">GitHub</a> ·
+      Learn more about Score on <a href="https://score.dev">score.dev</a>
+    </footer>
+  </main>
+
+  <script>
+    document.querySelectorAll(".copy").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var text = btn.parentNode.querySelector("code").textContent;
+        if (!navigator.clipboard) return;
+        navigator.clipboard.writeText(text).then(function () {
+          var icon = btn.firstElementChild;
+          icon.textContent = "check";
+          setTimeout(function () { icon.textContent = "content_copy"; }, 1500);
+        }, function () {});
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+# Authoring environment for the simulated lab. Uses the prebuilt Simspace images
+# and mounts only ./labs (and the hands-on lab's images): you never need Node or
+# the app source.
+#
+#   docker compose up dev                 # live preview at http://localhost:5173
+#   docker compose run --rm validate      # validate the lab (fails on errors)
+#   docker compose run --rm replay        # play the whole lab through the engine
+
+name: score-labspace-simspace
+
+services:
+  # Live preview. Edits to ./labs show on browser refresh.
+  dev:
+    image: ${SIMSPACE_AUTHORING_IMAGE:-dockersamples/simspace-authoring:latest}
+    command: npm run dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./labs:/usr/local/app/public/labs
+      - ../labspace/images:/usr/local/app/public/labs/score/images:ro
+
+  # One-shot validator: checks every lab under labs/.
+  validate:
+    image: ${SIMSPACE_AUTHORING_IMAGE:-dockersamples/simspace-authoring:latest}
+    profiles: ["tools"]
+    command: npm run validate-lab -- /labs
+    volumes:
+      - ./labs:/labs:ro
+
+  # One-shot replay of the whole lab through the real engine: plays every
+  # runnable block in order. See tools/replay.ts.
+  replay:
+    image: ${SIMSPACE_AUTHORING_IMAGE:-dockersamples/simspace-authoring:latest}
+    profiles: ["tools"]
+    command: node scripts/run-ts.mjs scripts/replay.ts /labs/score
+    volumes:
+      - ./labs:/labs:ro
+      - ./tools/replay.ts:/usr/local/app/scripts/replay.ts:ro

@@ -1,0 +1,37 @@
+# syntax=docker/sandbox-kit:3
+#
+# The Score Labspace as one kit reference: a kit set that merges the `shell`
+# workload with the two kits the lab runs with. It publishes as a workload, so
+# learners run it directly, without `shell` or any --kit:
+#
+#   sbx run docker.io/scorespec/score-labsbx:latest \
+#     -p 3030:3030 -p 8085:8085 -p 8080:8080 --name score-lab
+#
+# The members must be published registry references. The build records each
+# member's digest, so a published set never changes: a new version of a member
+# reaches learners when the set is rebuilt, which the publish-kit workflow does
+# on every push to main, right after it publishes the content kit.
+schemaVersion: "3"
+kind: set
+
+displayName: Score Labspace (Labspace on Docker Sandboxes)
+description: >-
+  The Score Labspace, ready to run: the `shell` sandbox (bash and a Docker
+  engine), the Labspace kit (interface and IDE), and the lab's content kit
+  (instructions, sample app, score-compose, score-k8s, kind, kubectl, helm),
+  merged into one workload.
+
+version: "0.1.0"
+
+# Becomes the org.opencontainers.image.source annotation, which is what links
+# the published kit to this repository.
+sourceUrl: https://github.com/score-spec/score-labspace
+
+kits:
+  # The workload: a plain shell sandbox with a Docker engine. The only workload
+  # in the set (a set may have at most one).
+  - ref: docker.io/sbx/shell:latest
+  # Labspace interface and VS Code (code-server). Provides `labspace`.
+  - ref: ghcr.io/mathieu-benoit/labsbxes/labspace:latest
+  # This lab's content (sbx-kit/), which requires the kit above.
+  - ref: docker.io/scorespec/score-labsbx-mixin:latest

@@ -1,0 +1,180 @@
+name: build-kit
+
+# Reusable workflow: builds one Docker Sandboxes kit (or kit set), publishes it
+# to Docker Hub on main, and validates it with kit-tck. Called by
+# publish-kit.yaml. Docker Hub login is the same as publish-labspace.yaml's:
+# OIDC, with the DOCKER_HUB_ORG and DOCKER_HUB_OIDC_CONNECTION_ID variables.
+#
+#   pull request                nothing pushed: built to a local OCI layout, checked with kit-tck
+#   push to main / manual run   :latest and :sha-<short>, plus :<version from the descriptor>
+#   on main                     the first time that version is published (a published version
+#                               is never overwritten: bump version: to release a new one)
+#   manual run elsewhere        build only
+
+on:
+  workflow_call:
+    inputs:
+      image:
+        description: Docker Hub repository the kit is published to, e.g. docker.io/scorespec/score-labsbx
+        required: true
+        type: string
+      descriptor:
+        description: Path to the kit descriptor (the -f of docker buildx build)
+        required: true
+        type: string
+      context:
+        description: Build context
+        required: false
+        type: string
+        default: "."
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # required to request the GitHub OIDC token for Docker Hub
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Resolve image name
+        id: meta
+        env:
+          IMAGE: ${{ inputs.image }}
+          DESCRIPTOR: ${{ inputs.descriptor }}
+          EVENT: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+
+          # The descriptor is the version authority (top-level `version:` only).
+          version="$(sed -n 's/^version:[[:space:]]*"\{0,1\}\([^"[:space:]#]*\).*/\1/p' "$DESCRIPTOR" | head -n 1)"
+          if [ -z "$version" ]; then
+            echo "::error file=$DESCRIPTOR::no top-level version: found"
+            exit 1
+          fi
+
+          image="$IMAGE"
+          publish=false
+          if [ "$EVENT" != "pull_request" ] && [ "$REF" = "refs/heads/main" ]; then
+            publish=true
+          fi
+
+          {
+            echo "image=$image"
+            echo "version=$version"
+            echo "publish=$publish"
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+        with:
+          platforms: arm64
+
+      # The docker-container driver keeps the manifest annotations that carry
+      # the kit descriptor.
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: Log in to Docker Hub
+        if: steps.meta.outputs.publish == 'true'
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        env:
+          DOCKERHUB_OIDC_CONNECTIONID: ${{ vars.DOCKER_HUB_OIDC_CONNECTION_ID }}
+        with:
+          registry-auth: |
+            - username: ${{ vars.DOCKER_HUB_ORG }}
+
+      # :latest and :sha-<short> move with main; :<version> is immutable, so it
+      # is only added the first time that version is published.
+      - name: Resolve tags
+        id: tags
+        env:
+          PUBLISH: ${{ steps.meta.outputs.publish }}
+          IMAGE: ${{ steps.meta.outputs.image }}
+          VERSION: ${{ steps.meta.outputs.version }}
+          DESCRIPTOR: ${{ inputs.descriptor }}
+        run: |
+          set -euo pipefail
+          if [ "$PUBLISH" != "true" ]; then
+            tags="${IMAGE}:ci-build"
+            primary="${IMAGE}:ci-build"
+          else
+            tags="${IMAGE}:latest,${IMAGE}:sha-${GITHUB_SHA::7}"
+            primary="${IMAGE}:sha-${GITHUB_SHA::7}"
+            if docker buildx imagetools inspect "${IMAGE}:${VERSION}" > /dev/null 2>&1; then
+              echo "::notice::${IMAGE}:${VERSION} already exists; publishing :latest and :sha-${GITHUB_SHA::7} only. Bump version: in $DESCRIPTOR to release a new version."
+            else
+              tags="${IMAGE}:${VERSION},${tags}"
+            fi
+          fi
+          {
+            echo "tags=$tags"
+            echo "primary=$primary"
+          } >> "$GITHUB_OUTPUT"
+
+      # The `# syntax=docker/sandbox-kit:3` line of the descriptor makes BuildKit
+      # run the Kit frontend, which validates the descriptor and attaches it. For
+      # a kit set, it pulls the member kits and pins each one by digest. mode=min
+      # is what the spec asks for with multi-platform builds.
+      - name: Build${{ steps.meta.outputs.publish == 'true' && ' and push' || '' }}
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: ${{ inputs.context }}
+          file: ${{ inputs.descriptor }}
+          platforms: linux/amd64,linux/arm64
+          provenance: mode=min
+          sbom: false
+          push: ${{ steps.meta.outputs.publish == 'true' }}
+          tags: ${{ steps.tags.outputs.tags }}
+          # When nothing is pushed, export the kit as an OCI layout (a directory)
+          # so kit-tck can judge exactly what would have been published.
+          outputs: ${{ steps.meta.outputs.publish != 'true' && format('type=oci,dest={0}/kit-layout,tar=false', runner.temp) || '' }}
+
+      # kit-tck, the Sandbox Kit specification's conformance checker, from the
+      # specification's own setup action: an exact release, verified against its
+      # checksums.txt and the pinned SHA256 of the linux_amd64 archive. Keep the
+      # action's ref and `version` on the same release.
+      - name: Install kit-tck
+        uses: docker/sandbox-kit-spec/actions/setup-tck@7c8b7cd53acc7271184b5c66ab0acb9613df56c7 # v3.0.0-m.14
+        with:
+          version: 3.0.0-m.14
+          sha256: cc246acdf0343f83a4f80d54fadf889f13e193c4b907d0c6c5a84aec7a46ebd8
+
+      # On a pull request it reads the OCI layout above; after a publish it reads
+      # the registry, because the frontend's own checks cannot see metadata an
+      # exporter or a registry drops.
+      - name: Validate the kit with kit-tck
+        env:
+          PUBLISH: ${{ steps.meta.outputs.publish }}
+          PRIMARY: ${{ steps.tags.outputs.primary }}
+        run: |
+          if [ "$PUBLISH" = "true" ]; then
+            kit-tck validate "$PRIMARY"
+          else
+            kit-tck validate --layout "$RUNNER_TEMP/kit-layout" ci-build
+          fi
+
+      - name: Summary
+        if: always()
+        env:
+          PUBLISH: ${{ steps.meta.outputs.publish }}
+          TAGS: ${{ steps.tags.outputs.tags }}
+          IMAGE: ${{ inputs.image }}
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          {
+            echo "### ${IMAGE} ${VERSION}"
+            if [ "$PUBLISH" != "true" ]; then
+              echo "Built and checked with kit-tck from an OCI layout (nothing pushed)."
+            else
+              echo "Published:"
+              echo
+              echo "$TAGS" | tr ',' '\n' | while read -r tag; do
+                echo "- \`$tag\`"
+              done
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,3 @@
+# The sample app copied into project/ when the Labspace runs from a clone (docs/sbx.md).
+/project/*
+!/project/README.md

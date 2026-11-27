@@ -1,0 +1,6 @@
+# The lab content is read by Linux containers: keep it LF on every checkout,
+# Windows included. With CRLF, a code fence such as "```yaml save-as=score.yaml"
+# ends in a carriage return, and the Labspace writes "score.yaml\r" next to the
+# real score.yaml instead of replacing it.
+labspace/** text=auto eol=lf
+project/**  text=auto eol=lf

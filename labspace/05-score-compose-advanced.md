@@ -23,6 +23,8 @@ docker login dhi.io
 
 _Note: If you don't have a Docker account, you can skip the rest of this `--build` section._
 
+_Note: If you run this lab in a Docker Sandbox (with `sbx`), skip this `docker login dhi.io` command: the sandbox authenticates to the registry for you with the Docker account of your `sbx login`, without your credentials ever entering the sandbox (see [Registry credentials](https://docs.docker.com/ai/sandboxes/configuration/credentials/#registry-credentials))._
+
 Build and run the container image:
 
 ```bash

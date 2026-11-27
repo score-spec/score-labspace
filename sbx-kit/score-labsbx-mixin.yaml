@@ -8,7 +8,7 @@
 #
 #   sbx run shell \
 #     --kit ghcr.io/mathieu-benoit/labsbxes/labspace:latest \
-#     --kit ghcr.io/score-spec/score-labsbx-mixin:latest \
+#     --kit docker.io/scorespec/score-labsbx-mixin:latest \
 #     -p 3030:3030 -p 8085:8085 -p 8080:8080 --name score-lab
 #
 # See docs/sbx.md, and score-labsbx.yaml for the same thing as one reference.
@@ -23,7 +23,7 @@ description: >-
 version: "0.1.0"
 
 # Becomes the org.opencontainers.image.source annotation, which is what links
-# the published GHCR package to this repository.
+# the published kit to this repository.
 sourceUrl: https://github.com/score-spec/score-labspace
 
 # The Labspace kit provides `labspace`. Composing this kit without it fails at

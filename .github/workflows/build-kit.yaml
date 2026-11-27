@@ -1,8 +1,9 @@
 name: build-kit
 
 # Reusable workflow: builds one Docker Sandboxes kit (or kit set), publishes it
-# to ghcr.io/<owner>/<name> on main, and validates it with kit-tck. Called by
-# publish-kit.yaml.
+# to Docker Hub on main, and validates it with kit-tck. Called by
+# publish-kit.yaml. Docker Hub login is the same as publish-labspace.yaml's:
+# OIDC, with the DOCKER_HUB_ORG and DOCKER_HUB_OIDC_CONNECTION_ID variables.
 #
 #   pull request                nothing pushed: built to a local OCI layout, checked with kit-tck
 #   push to main / manual run   :latest and :sha-<short>, plus :<version from the descriptor>
@@ -13,8 +14,8 @@ name: build-kit
 on:
   workflow_call:
     inputs:
-      name:
-        description: Package name, published as ghcr.io/<owner>/<name>
+      image:
+        description: Docker Hub repository the kit is published to, e.g. docker.io/scorespec/score-labsbx
         required: true
         type: string
       descriptor:
@@ -30,15 +31,12 @@ on:
 permissions:
   contents: read
 
-env:
-  REGISTRY: ghcr.io
-
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write # push to ghcr.io/<owner>/<name>
+      id-token: write # required to request the GitHub OIDC token for Docker Hub
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -47,7 +45,7 @@ jobs:
       - name: Resolve image name
         id: meta
         env:
-          NAME: ${{ inputs.name }}
+          IMAGE: ${{ inputs.image }}
           DESCRIPTOR: ${{ inputs.descriptor }}
           EVENT: ${{ github.event_name }}
           REF: ${{ github.ref }}
@@ -61,7 +59,7 @@ jobs:
             exit 1
           fi
 
-          image="${REGISTRY}/${GITHUB_REPOSITORY_OWNER,,}/${NAME}"
+          image="$IMAGE"
           publish=false
           if [ "$EVENT" != "pull_request" ] && [ "$REF" = "refs/heads/main" ]; then
             publish=true
@@ -81,13 +79,14 @@ jobs:
       # the kit descriptor.
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
-      - name: Log in to ghcr.io
+      - name: Log in to Docker Hub
         if: steps.meta.outputs.publish == 'true'
         uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        env:
+          DOCKERHUB_OIDC_CONNECTIONID: ${{ vars.DOCKER_HUB_OIDC_CONNECTION_ID }}
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          registry-auth: |
+            - username: ${{ vars.DOCKER_HUB_ORG }}
 
       # :latest and :sha-<short> move with main; :<version> is immutable, so it
       # is only added the first time that version is published.
@@ -164,11 +163,11 @@ jobs:
         env:
           PUBLISH: ${{ steps.meta.outputs.publish }}
           TAGS: ${{ steps.tags.outputs.tags }}
-          NAME: ${{ inputs.name }}
+          IMAGE: ${{ inputs.image }}
           VERSION: ${{ steps.meta.outputs.version }}
         run: |
           {
-            echo "### ${NAME} ${VERSION}"
+            echo "### ${IMAGE} ${VERSION}"
             if [ "$PUBLISH" != "true" ]; then
               echo "Built and checked with kit-tck from an OCI layout (nothing pushed)."
             else

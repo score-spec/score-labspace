@@ -12,7 +12,7 @@ This option uses [Sandbox Kits](https://github.com/docker/sandbox-kit-spec), lay
 - the **Labspace kit** from [mathieu-benoit/labsbxes](https://github.com/mathieu-benoit/labsbxes), which runs the interface and the IDE;
 - the **content kit** of this repository (in [sbx-kit/](../sbx-kit)), which carries `labspace/`, the sample app, the lab's tools (`score-compose`, `score-k8s`, `kind`, `kubectl` and `helm`), the port of the app deployed with `score-compose` (`8080`) and the network access the lab needs. It requires the Labspace kit: `sbx` refuses to start it without it.
 
-They are also published together as one reference: the **kit set** [labsbx-score.yaml](../labsbx-score.yaml) merges the two with the `shell` sandbox into a single workload kit, `ghcr.io/score-spec/labsbx-score` (see [Kit sets](https://docs.docker.com/ai/sandboxes/customize/author/kit-sets/)).
+They are also published together as one reference: the **kit set** [score-labsbx.yaml](../score-labsbx.yaml) merges the two with the `shell` sandbox into a single workload kit, `ghcr.io/score-spec/score-labsbx` (see [Kit sets](https://docs.docker.com/ai/sandboxes/customize/author/kit-sets/)).
 
 ## Before you start
 
@@ -27,13 +27,13 @@ sbx settings set kit.allowedSources '["docker.io/","dhi.io/","ghcr.io/mathieu-be
 From an empty folder (`sbx run` mounts the current folder as the workspace), run the kit set:
 
 ```bash
-sbx run ghcr.io/score-spec/labsbx-score:latest -p 3030:3030 -p 8085:8085 -p 8080:8080 --name score-lab -d
+sbx run ghcr.io/score-spec/score-labsbx:latest -p 3030:3030 -p 8085:8085 -p 8080:8080 --name score-lab -d
 ```
 
 This is the same as passing the two kits yourself onto `shell`:
 
 ```bash
-sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:latest --kit ghcr.io/score-spec/labsbx-score-mixin:latest -p 3030:3030 -p 8085:8085 -p 8080:8080 --name score-lab -d
+sbx run shell --kit ghcr.io/mathieu-benoit/labsbxes/labspace:latest --kit ghcr.io/score-spec/score-labsbx-mixin:latest -p 3030:3030 -p 8085:8085 -p 8080:8080 --name score-lab -d
 ```
 
 The set pins the exact version of each kit it was built with, including `shell`, so it changes only when it is republished; passing the two `:latest` kits onto `shell` picks up each one's newest version.
@@ -75,10 +75,10 @@ A few things differ from the Compose setup, and the content kit takes care of th
 
 ## How the kits are published
 
-Both kits are published by [.github/workflows/publish-kit.yaml](../.github/workflows/publish-kit.yaml) on every push to `main`: first the content kit, `ghcr.io/score-spec/labsbx-score-mixin`, then the kit set, `ghcr.io/score-spec/labsbx-score`, so the set always includes the content kit just published (and the newest `shell` and Labspace kits).
+Both kits are published by [.github/workflows/publish-kit.yaml](../.github/workflows/publish-kit.yaml) on every push to `main`: first the content kit, `ghcr.io/score-spec/score-labsbx-mixin`, then the kit set, `ghcr.io/score-spec/score-labsbx`, so the set always includes the content kit just published (and the newest `shell` and Labspace kits).
 
-- For each, `:latest` and `:sha-<short>` follow `main`, and `:<version>` (from `version:` in [sbx-kit/labsbx-score-mixin.yaml](../sbx-kit/labsbx-score-mixin.yaml) and [labsbx-score.yaml](../labsbx-score.yaml)) is published the first time that version reaches `main` and never overwritten, so bump `version:` to release a new one.
-- The content kit is built from the repository root (`docker buildx build . -f sbx-kit/labsbx-score-mixin.yaml`), which is how the published kit carries `labspace/`.
+- For each, `:latest` and `:sha-<short>` follow `main`, and `:<version>` (from `version:` in [sbx-kit/score-labsbx-mixin.yaml](../sbx-kit/score-labsbx-mixin.yaml) and [score-labsbx.yaml](../score-labsbx.yaml)) is published the first time that version reaches `main` and never overwritten, so bump `version:` to release a new one.
+- The content kit is built from the repository root (`docker buildx build . -f sbx-kit/score-labsbx-mixin.yaml`), which is how the published kit carries `labspace/`.
 - Pull requests only build and validate the content kit, with [kit-tck](https://github.com/docker/sandbox-kit-spec).
 - The content kit always installs the latest `score-compose`, `score-k8s`, `kind`, `kubectl` and `helm` releases, at the time it is built.
 - New GHCR packages can start out private: make the packages public after the first publish.

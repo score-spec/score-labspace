@@ -7,7 +7,7 @@
 #   - the tools the lab uses land in /usr/local/bin.
 #
 # The build context is the repository root (CI, see docs/sbx.md):
-#   docker buildx build . -f sbx-kit/labsbx-score-mixin.yaml
+#   docker buildx build . -f sbx-kit/score-labsbx-mixin.yaml
 #
 # The `[e]` wildcard makes the COPY of labspace/ a no-op when the folder isn't
 # in the context, which is the case when sbx builds this folder on its own

@@ -2,11 +2,11 @@ name: publish-kit
 
 # Builds and publishes this lab's Docker Sandboxes kits (see docs/sbx.md):
 #
-#   mixin   sbx-kit/labsbx-score-mixin.yaml   the lab's content kit
-#                                             -> ghcr.io/<owner>/labsbx-score-mixin
-#   set     labsbx-score.yaml                 a kit set merging the shell sandbox, the Labspace
+#   mixin   sbx-kit/score-labsbx-mixin.yaml   the lab's content kit
+#                                             -> ghcr.io/<owner>/score-labsbx-mixin
+#   set     score-labsbx.yaml                 a kit set merging the shell sandbox, the Labspace
 #                                             kit and the content kit into one reference
-#                                             -> ghcr.io/<owner>/labsbx-score
+#                                             -> ghcr.io/<owner>/score-labsbx
 #
 # The set runs after the mixin: its members are registry references, pinned by
 # digest at build, so building it right after the mixin is published is what
@@ -24,7 +24,7 @@ on:
     paths:
       - "labspace/**"
       - "sbx-kit/**"
-      - "labsbx-score.yaml"
+      - "score-labsbx.yaml"
       - ".github/workflows/publish-kit.yaml"
       - ".github/workflows/build-kit.yaml"
   push:
@@ -46,8 +46,8 @@ jobs:
       contents: read
       packages: write
     with:
-      name: labsbx-score-mixin
-      descriptor: sbx-kit/labsbx-score-mixin.yaml
+      name: score-labsbx-mixin
+      descriptor: sbx-kit/score-labsbx-mixin.yaml
       # The repository root, so the kit carries labspace/.
       context: .
 
@@ -59,5 +59,5 @@ jobs:
       contents: read
       packages: write
     with:
-      name: labsbx-score
-      descriptor: labsbx-score.yaml
+      name: score-labsbx
+      descriptor: score-labsbx.yaml

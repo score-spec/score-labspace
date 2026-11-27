@@ -4,7 +4,7 @@
 # workload with the two kits the lab runs with. It publishes as a workload, so
 # learners run it directly, without `shell` or any --kit:
 #
-#   sbx run ghcr.io/score-spec/labsbx-score:latest \
+#   sbx run ghcr.io/score-spec/score-labsbx:latest \
 #     -p 3030:3030 -p 8085:8085 -p 8080:8080 --name score-lab
 #
 # The members must be published registry references. The build records each
@@ -34,4 +34,4 @@ kits:
   # Labspace interface and VS Code (code-server). Provides `labspace`.
   - ref: ghcr.io/mathieu-benoit/labsbxes/labspace:latest
   # This lab's content (sbx-kit/), which requires the kit above.
-  - ref: ghcr.io/score-spec/labsbx-score-mixin:latest
+  - ref: ghcr.io/score-spec/score-labsbx-mixin:latest

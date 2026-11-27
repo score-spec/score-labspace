@@ -1,0 +1,127 @@
+name: publish-pages
+
+# Publishes the repository's GitHub Pages site (https://score-spec.github.io/score-labspace/):
+#
+#   /            the landing page (site/): the three ways to run the lab
+#   /sbx.html, /compose.html
+#                the run docs (docs/*.md), rendered by site/render-docs.py
+#   /simspace/   the simulated lab (simspace/labs/), on the prebuilt Simspace
+#                runtime, assembled like dockersamples/simspace's deploy-lab.yml
+#
+# On pull requests the site is built and the simulated lab is validated and
+# replayed, but nothing is deployed. Enable Pages first: Settings → Pages →
+# Source: "GitHub Actions".
+
+on:
+  pull_request:
+    paths:
+      - "site/**"
+      - "docs/**"
+      - "simspace/**"
+      - "labspace/images/**"
+      - ".github/workflows/publish-pages.yaml"
+  push:
+    branches:
+      - main
+    paths:
+      - "site/**"
+      - "docs/**"
+      - "simspace/**"
+      - "labspace/images/**"
+      - ".github/workflows/publish-pages.yaml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-pages-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  LABS_DIR: simspace/labs
+  SIMSPACE_RUNTIME_IMAGE: dockersamples/simspace
+  SIMSPACE_AUTHORING_IMAGE: dockersamples/simspace-authoring
+  # Only "latest" is published for now; pin to a released version once there is one.
+  SIMSPACE_TAG: latest
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Validate the simulated lab
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE/$LABS_DIR:/labs:ro" \
+            "$SIMSPACE_AUTHORING_IMAGE:$SIMSPACE_TAG" \
+            npm run validate-lab -- /labs
+
+      # Plays every Run button of the lab, in order, through the real engine:
+      # fails on a step that dead-ends, lands on an error path, or a milestone
+      # nothing completes.
+      - name: Replay the simulated lab
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE/$LABS_DIR:/labs:ro" \
+            -v "$GITHUB_WORKSPACE/simspace/tools/replay.ts:/usr/local/app/scripts/replay.ts:ro" \
+            "$SIMSPACE_AUTHORING_IMAGE:$SIMSPACE_TAG" \
+            node scripts/run-ts.mjs scripts/replay.ts /labs/score
+
+      - name: Assemble the site
+        run: |
+          set -euo pipefail
+          mkdir -p _site
+          cp -R site/. _site/
+          rm -f _site/render-docs.py _site/requirements.txt
+          touch _site/.nojekyll
+
+          # /sbx.html and /compose.html: the run docs, in the site's look.
+          python3 -m venv "$RUNNER_TEMP/docs-venv"
+          "$RUNNER_TEMP/docs-venv/bin/pip" install --quiet --require-hashes -r site/requirements.txt
+          "$RUNNER_TEMP/docs-venv/bin/python" site/render-docs.py docs _site
+
+          # /simspace/: the runtime image's static files, with this repo's labs
+          # and a freshly generated labs.json (the steps of deploy-lab.yml).
+          image="$SIMSPACE_RUNTIME_IMAGE:$SIMSPACE_TAG"
+          docker pull "$image"
+          cid="$(docker create "$image")"
+          mkdir -p _site/simspace
+          docker cp "$cid":/usr/share/nginx/html/. _site/simspace/
+          docker rm "$cid"
+          rm -rf _site/simspace/labs _site/simspace/labs.json
+          # The runtime ships a dev config.json (localhost tracking): no tracking here.
+          rm -f _site/simspace/config.json
+          mkdir -p _site/simspace/labs
+          cp -R "$LABS_DIR/." _site/simspace/labs/
+          # The simulated lab shows the hands-on lab's images: one copy, in labspace/.
+          cp -R labspace/images _site/simspace/labs/score/images
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/work" \
+            "$SIMSPACE_AUTHORING_IMAGE:$SIMSPACE_TAG" \
+            npm run generate-catalog -- "/work/$LABS_DIR" /work/_site/simspace/labs.json
+
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+        if: github.event_name != 'pull_request'
+
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        if: github.event_name != 'pull_request'
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write # deploy to GitHub Pages
+      id-token: write # verify the deployment comes from this workflow
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

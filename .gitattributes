@@ -4,3 +4,4 @@
 # real score.yaml instead of replacing it.
 labspace/** text=auto eol=lf
 project/**  text=auto eol=lf
+simspace/** text=auto eol=lf
